@@ -1,0 +1,28 @@
+{
+    "id": "",
+    "title": "Sample Quiz",
+    "questions": [
+        {
+            "id": "",
+            "text": "What is the capital of France?",
+            "choices": {
+                "A": "Paris",
+                "B": "London",
+                "C": "Berlin",
+                "D": "Madrid"
+            },
+            "answer": "A"
+        },
+        {
+            "id": "",
+            "text": "What is 2 + 2?",
+            "choices": {
+                "A": "3",
+                "B": "4",
+                "C": "5",
+                "D": "6"
+            },
+            "answer": "B"
+        }
+    ]
+}

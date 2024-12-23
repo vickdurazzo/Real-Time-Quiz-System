@@ -1,0 +1,903 @@
+{
+  "modelName": "Sistema Gameficado de Quiz",
+  "collections": [
+    {
+      "GUID": "160f1ded-c17a-441a-b8df-84cd27713046",
+      "collectionName": "Users",
+      "type": "object",
+      "properties": [
+        {
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": true,
+          "exclusiveMinimum": false,
+          "exclusiveMaximum": false,
+          "mode": "integer",
+          "childType": "numeric",
+          "type": "numeric",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "code": "user_id",
+          "required": true,
+          "GUID": "58cc8883-6344-4a58-ad61-5f76bd371889",
+          "name": "User ID",
+          "childRelationships": [
+            "30401f24-81e5-485c-b7ff-d8b76294c0af"
+          ],
+          "error": {}
+        },
+        {
+          "name": "User Name",
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": true,
+          "mode": "varchar",
+          "required": true,
+          "childType": "char",
+          "type": "string",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "GUID": "a1ae0479-b388-4c74-b22b-049a7107e8e7",
+          "code": "nm_user",
+          "maxLength": 200,
+          "minLength": 5,
+          "error": {}
+        },
+        {
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "mode": "varchar",
+          "required": false,
+          "childType": "char",
+          "type": "string",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "GUID": "2d77bf21-57df-4b91-8f6f-c2a5f3fbdada",
+          "code": "des_user_passwd",
+          "name": "User Password",
+          "maxLength": 200,
+          "minLength": 5,
+          "error": {}
+        }
+      ],
+      "definitions": {
+        "type": "definitions",
+        "properties": [],
+        "GUID": "2ba2c341-536c-4a9d-b828-e7588e27d2c7"
+      },
+      "isActivated": true,
+      "additionalProperties": false,
+      "memory_optimized": false,
+      "collectionUsers": [],
+      "ifNotExist": true,
+      "on_commit": "PRESERVE ROWS",
+      "table_tablespace_name": "pg_default"
+    },
+    {
+      "GUID": "7da3bd47-6f6c-4f00-b505-3afb2a217e71",
+      "collectionName": "Quizzes",
+      "type": "object",
+      "properties": [
+        {
+          "name": "Quiz ID",
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": true,
+          "unique": false,
+          "childType": "uuid",
+          "type": "string",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "compositePrimaryKey": false,
+          "compositeUniqueKey": false,
+          "triggerUpdateColumns": false,
+          "error": {},
+          "code": "quiz_id",
+          "required": true,
+          "GUID": "aa34e09a-8c58-46e6-a0fa-6750e5f6a3aa",
+          "childRelationships": [
+            "cb397f9a-e514-4567-b52a-c573d209dbc9"
+          ]
+        },
+        {
+          "name": "User ID",
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "exclusiveMinimum": false,
+          "exclusiveMaximum": false,
+          "mode": "integer",
+          "childType": "numeric",
+          "type": "numeric",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "code": "user_id",
+          "required": true,
+          "GUID": "679b81d0-8519-49d9-ac3f-8176957479b6",
+          "foreignCollection": "160f1ded-c17a-441a-b8df-84cd27713046",
+          "foreignField": [
+            "160f1ded-c17a-441a-b8df-84cd27713046",
+            "58cc8883-6344-4a58-ad61-5f76bd371889"
+          ],
+          "relationshipType": "Foreign Key",
+          "parentRelationship": "30401f24-81e5-485c-b7ff-d8b76294c0af",
+          "error": {}
+        },
+        {
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "mode": "varchar",
+          "required": true,
+          "childType": "char",
+          "type": "string",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "GUID": "3d9a83f5-e183-4c42-8e65-8ef0bd083872",
+          "code": "title",
+          "name": "Quiz Title",
+          "maxLength": 200,
+          "minLength": 10,
+          "error": {}
+        }
+      ],
+      "definitions": {
+        "type": "definitions",
+        "properties": [],
+        "GUID": "86b746cc-5712-4074-83be-340903a40020"
+      },
+      "isActivated": true,
+      "additionalProperties": false,
+      "memory_optimized": false,
+      "collectionUsers": [],
+      "ifNotExist": true,
+      "on_commit": "PRESERVE ROWS",
+      "table_tablespace_name": "pg_default",
+      "hackoladeMeta": {}
+    },
+    {
+      "GUID": "b73320d2-9960-4608-9792-b66be4bfc68a",
+      "collectionName": "Questions",
+      "type": "object",
+      "properties": [
+        {
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": true,
+          "exclusiveMinimum": false,
+          "exclusiveMaximum": false,
+          "mode": "integer",
+          "childType": "numeric",
+          "type": "numeric",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "code": "question_id",
+          "required": true,
+          "GUID": "5da559fa-c6eb-4c9e-b34d-e01f244bd0a5",
+          "name": "Question ID",
+          "error": {
+            "name": false,
+            "code": false
+          },
+          "childRelationships": [
+            "0470ba1d-a6b5-4abe-a055-bf3a4a14e622"
+          ]
+        },
+        {
+          "name": "Quiz ID",
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "childType": "uuid",
+          "type": "string",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "compositePrimaryKey": false,
+          "compositeUniqueKey": false,
+          "triggerUpdateColumns": false,
+          "error": {
+            "name": false,
+            "code": false
+          },
+          "code": "quiz_id",
+          "required": true,
+          "GUID": "51de4c27-f150-4c73-9e8d-2b64860c054e",
+          "parentRelationship": "cb397f9a-e514-4567-b52a-c573d209dbc9",
+          "relationshipType": "Foreign Key"
+        },
+        {
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "mode": "varchar",
+          "required": true,
+          "childType": "char",
+          "type": "string",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "GUID": "8dc5d036-c977-4247-bbce-75a476e3df5a",
+          "code": "question_text",
+          "name": "Question Text",
+          "maxLength": 200,
+          "minLength": 10,
+          "error": {}
+        }
+      ],
+      "definitions": {
+        "type": "definitions",
+        "properties": [],
+        "GUID": "4ba2b8a2-5ed1-4f97-ade0-8b0a9ff5b815"
+      },
+      "isActivated": true,
+      "additionalProperties": false,
+      "memory_optimized": false,
+      "collectionUsers": [],
+      "ifNotExist": true,
+      "on_commit": "PRESERVE ROWS",
+      "table_tablespace_name": "pg_default",
+      "hackoladeMeta": {}
+    },
+    {
+      "GUID": "fbb521f7-e91e-4f57-bd30-309d6fef07e9",
+      "collectionName": "Answers",
+      "type": "object",
+      "properties": [
+        {
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": true,
+          "exclusiveMinimum": false,
+          "exclusiveMaximum": false,
+          "mode": "integer",
+          "childType": "numeric",
+          "type": "numeric",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "code": "answer_id",
+          "required": true,
+          "GUID": "9b34fde2-55c7-4ab2-acbe-72a50cae2a86",
+          "error": {
+            "name": false,
+            "code": false
+          },
+          "name": "Answer ID"
+        },
+        {
+          "name": "Question ID",
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "exclusiveMinimum": false,
+          "exclusiveMaximum": false,
+          "mode": "integer",
+          "childType": "numeric",
+          "type": "numeric",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "code": "question_id",
+          "required": true,
+          "GUID": "d56374f5-79e9-4181-aaaa-35b9b9c4ec45",
+          "foreignCollection": "b73320d2-9960-4608-9792-b66be4bfc68a",
+          "error": {},
+          "foreignField": [
+            "b73320d2-9960-4608-9792-b66be4bfc68a",
+            "5da559fa-c6eb-4c9e-b34d-e01f244bd0a5"
+          ],
+          "relationshipType": "Foreign Key",
+          "parentRelationship": "0470ba1d-a6b5-4abe-a055-bf3a4a14e622"
+        },
+        {
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "mode": "varchar",
+          "required": true,
+          "childType": "char",
+          "type": "string",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "triggerUpdateColumns": false,
+          "GUID": "ed9c4361-d3a2-49d0-9572-7620b0b7f8a0",
+          "code": "answer_text",
+          "name": "Answer Text",
+          "maxLength": 200,
+          "minLength": 10,
+          "error": {}
+        },
+        {
+          "name": "Correct",
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "childType": "boolean",
+          "type": "boolean",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "compositePrimaryKey": false,
+          "compositeUniqueKey": false,
+          "triggerUpdateColumns": false,
+          "code": "is_correct",
+          "required": true,
+          "GUID": "708e306b-25ef-4200-abd7-97027f4cac5a",
+          "error": {}
+        },
+        {
+          "hackoladeMeta": {},
+          "isActivated": true,
+          "primaryKey": false,
+          "unique": false,
+          "mode": "char",
+          "required": false,
+          "childType": "char",
+          "type": "string",
+          "compositeKey": [
+            "compositePartitionKey",
+            "compositePrimaryKey",
+            "compositeUniqueKey",
+            "triggerUpdateColumns"
+          ],
+          "compositePartitionKey": false,
+          "compositePrimaryKey": false,
+          "triggerUpdateColumns": false,
+          "GUID": "194333d3-724b-465a-8e1f-3443a6013cf6",
+          "code": "nm_answer_option",
+          "name": "Answer Option Name",
+          "error": {}
+        }
+      ],
+      "definitions": {
+        "type": "definitions",
+        "properties": [],
+        "GUID": "fbbff36a-ff07-40aa-b7e8-9912a3e36e27"
+      },
+      "isActivated": true,
+      "additionalProperties": false,
+      "memory_optimized": false,
+      "collectionUsers": [],
+      "ifNotExist": true,
+      "on_commit": "PRESERVE ROWS",
+      "table_tablespace_name": "pg_default",
+      "hackoladeMeta": {}
+    }
+  ],
+  "buckets": [],
+  "views": [],
+  "relationships": [
+    {
+      "name": "fk_Users_user_id_to_Quizzes_user_id",
+      "relationshipType": "Foreign Key",
+      "parentField": [
+        [
+          "160f1ded-c17a-441a-b8df-84cd27713046",
+          "58cc8883-6344-4a58-ad61-5f76bd371889"
+        ]
+      ],
+      "parentCardinality": "1",
+      "childField": [
+        [
+          "7da3bd47-6f6c-4f00-b505-3afb2a217e71",
+          "679b81d0-8519-49d9-ac3f-8176957479b6"
+        ]
+      ],
+      "isActivated": true,
+      "childCardinality": "1..n",
+      "GUID": "30401f24-81e5-485c-b7ff-d8b76294c0af",
+      "parentCollection": "160f1ded-c17a-441a-b8df-84cd27713046",
+      "childCollection": "7da3bd47-6f6c-4f00-b505-3afb2a217e71",
+      "hackoladeStyles": {
+        "GUID": "31b199f9-11da-409c-b8f6-a76f33644287",
+        "autoPositioning": true,
+        "type": "Orthogonal",
+        "thickness": 2,
+        "color": "#79c4ff",
+        "dataType": "",
+        "shape": [
+          {
+            "x": 728.3333333333334,
+            "y": 988
+          },
+          {
+            "x": 728.3333333333334,
+            "y": 940.5
+          },
+          {
+            "x": 590,
+            "y": 940.5
+          },
+          {
+            "x": 590,
+            "y": 893
+          }
+        ],
+        "sides": [
+          "top",
+          "bottom"
+        ]
+      }
+    },
+    {
+      "name": "fk_Quizzes_quiz_id_to_Questions_user_id",
+      "relationshipType": "Foreign Key",
+      "parentField": [
+        [
+          "7da3bd47-6f6c-4f00-b505-3afb2a217e71",
+          "aa34e09a-8c58-46e6-a0fa-6750e5f6a3aa"
+        ]
+      ],
+      "parentCardinality": "1",
+      "childField": [
+        [
+          "b73320d2-9960-4608-9792-b66be4bfc68a",
+          "51de4c27-f150-4c73-9e8d-2b64860c054e"
+        ]
+      ],
+      "isActivated": true,
+      "childCardinality": "1..n",
+      "GUID": "cb397f9a-e514-4567-b52a-c573d209dbc9",
+      "parentCollection": "7da3bd47-6f6c-4f00-b505-3afb2a217e71",
+      "childCollection": "b73320d2-9960-4608-9792-b66be4bfc68a",
+      "hackoladeStyles": {
+        "GUID": "bd3b158c-164d-4b71-98b0-4be09baaa94f",
+        "autoPositioning": true,
+        "type": "Orthogonal",
+        "thickness": 2,
+        "color": "#79c4ff",
+        "dataType": "",
+        "shape": [
+          {
+            "x": 966,
+            "y": 907
+          },
+          {
+            "x": 826.6666666666666,
+            "y": 907
+          },
+          {
+            "x": 826.6666666666666,
+            "y": 988
+          }
+        ],
+        "sides": [
+          "left",
+          "top"
+        ]
+      }
+    },
+    {
+      "name": "fk_Questions_question_id_to_Answers_question_id",
+      "relationshipType": "Foreign Key",
+      "parentField": [
+        [
+          "b73320d2-9960-4608-9792-b66be4bfc68a",
+          "5da559fa-c6eb-4c9e-b34d-e01f244bd0a5"
+        ]
+      ],
+      "parentCardinality": "1",
+      "childField": [
+        [
+          "fbb521f7-e91e-4f57-bd30-309d6fef07e9",
+          "d56374f5-79e9-4181-aaaa-35b9b9c4ec45"
+        ]
+      ],
+      "isActivated": true,
+      "childCardinality": "1..n",
+      "GUID": "0470ba1d-a6b5-4abe-a055-bf3a4a14e622",
+      "parentCollection": "b73320d2-9960-4608-9792-b66be4bfc68a",
+      "childCollection": "fbb521f7-e91e-4f57-bd30-309d6fef07e9",
+      "hackoladeStyles": {
+        "GUID": "97e4f34d-86c0-4be1-9d0a-c5ccf90bd8ff",
+        "autoPositioning": true,
+        "type": "Orthogonal",
+        "thickness": 2,
+        "color": "#79c4ff",
+        "dataType": "",
+        "shape": [
+          {
+            "x": 1171,
+            "y": 1049
+          },
+          {
+            "x": 1171,
+            "y": 1003.5
+          },
+          {
+            "x": 1113.5,
+            "y": 1003.5
+          },
+          {
+            "x": 1113.5,
+            "y": 958
+          }
+        ],
+        "sides": [
+          "top",
+          "bottom"
+        ]
+      }
+    }
+  ],
+  "users": [],
+  "diagramViews": [
+    {
+      "GUID": "5d1ed8fd-0e92-4fc5-b691-fa7614cc2c6d",
+      "name": "Gamefied Quiz System",
+      "buckets": [],
+      "comments": "",
+      "description": "",
+      "entities": [
+        "fbb521f7-e91e-4f57-bd30-309d6fef07e9",
+        "b73320d2-9960-4608-9792-b66be4bfc68a",
+        "7da3bd47-6f6c-4f00-b505-3afb2a217e71",
+        "160f1ded-c17a-441a-b8df-84cd27713046"
+      ]
+    }
+  ],
+  "idToNameHashTable": {
+    "160f1ded-c17a-441a-b8df-84cd27713046": "Users",
+    "58cc8883-6344-4a58-ad61-5f76bd371889": "User ID",
+    "a1ae0479-b388-4c74-b22b-049a7107e8e7": "User Name",
+    "2d77bf21-57df-4b91-8f6f-c2a5f3fbdada": "User Password",
+    "7da3bd47-6f6c-4f00-b505-3afb2a217e71": "Quizzes",
+    "aa34e09a-8c58-46e6-a0fa-6750e5f6a3aa": "Quiz ID",
+    "679b81d0-8519-49d9-ac3f-8176957479b6": "User ID",
+    "3d9a83f5-e183-4c42-8e65-8ef0bd083872": "Quiz Title",
+    "30401f24-81e5-485c-b7ff-d8b76294c0af": "fk_Users_user_id_to_Quizzes_user_id",
+    "b73320d2-9960-4608-9792-b66be4bfc68a": "Questions",
+    "5da559fa-c6eb-4c9e-b34d-e01f244bd0a5": "Question ID",
+    "51de4c27-f150-4c73-9e8d-2b64860c054e": "Quiz ID",
+    "8dc5d036-c977-4247-bbce-75a476e3df5a": "Question Text",
+    "cb397f9a-e514-4567-b52a-c573d209dbc9": "fk_Quizzes_quiz_id_to_Questions_user_id",
+    "fbb521f7-e91e-4f57-bd30-309d6fef07e9": "Answers",
+    "9b34fde2-55c7-4ab2-acbe-72a50cae2a86": "Answer ID",
+    "d56374f5-79e9-4181-aaaa-35b9b9c4ec45": "Question ID",
+    "ed9c4361-d3a2-49d0-9572-7620b0b7f8a0": "Answer Text",
+    "0470ba1d-a6b5-4abe-a055-bf3a4a14e622": "fk_Questions_question_id_to_Answers_question_id",
+    "708e306b-25ef-4200-abd7-97027f4cac5a": "Correct",
+    "194333d3-724b-465a-8e1f-3443a6013cf6": "Answer Option Name",
+    "5d1ed8fd-0e92-4fc5-b691-fa7614cc2c6d": "Gamefied Quiz System"
+  },
+  "definitions": {
+    "type": "definitions",
+    "properties": [],
+    "GUID": "8fff632c-3b01-435c-9758-b30621011b8c"
+  },
+  "polyglotDefinitions": {
+    "type": "polyglotDefinitions",
+    "properties": [],
+    "GUID": "3ee9babf-b16b-4089-b144-31c47cf695f2"
+  },
+  "externalDefinitions": {
+    "type": "externalDefinitions",
+    "properties": [],
+    "GUID": "fbf5df10-43a2-49d0-88b8-0396a32b45a6"
+  },
+  "sources": [],
+  "decorativeSymbols": [],
+  "dbVersion": "v16.x",
+  "dbVendor": "PostgreSQL",
+  "tablespace_name": "pg_default",
+  "encoding": "UTF8",
+  "appTarget": "PostgreSQL",
+  "creationTS": "2024-12-21T13:35:06.254Z",
+  "GUID": "63a78b37-b34b-470a-baa4-2682f953d610",
+  "isLineageEnabled": false,
+  "hackoladeMeta": {
+    "validationErrors": {}
+  },
+  "lastModifTS": "2024-12-22T16:55:08.203Z",
+  "persistenceSchemaVersion": "7",
+  "isCreatedByPlugin": true,
+  "pluginInformation": {
+    "pluginName": "PostgreSQL",
+    "pluginVersion": "0.2.15",
+    "pluginEngineVersion": "1.0.0"
+  },
+  "applicationInformation": {
+    "version": "7.9.3"
+  },
+  "settings": {
+    "centralPane": {
+      "dbLevel": {
+        "erd": [
+          {
+            "GUID": "160f1ded-c17a-441a-b8df-84cd27713046",
+            "x": 463,
+            "y": 791,
+            "width": 254,
+            "height": 102,
+            "color": {}
+          },
+          {
+            "GUID": "7da3bd47-6f6c-4f00-b505-3afb2a217e71",
+            "x": 630,
+            "y": 988,
+            "width": 295,
+            "height": 102,
+            "color": {}
+          },
+          {
+            "GUID": "b73320d2-9960-4608-9792-b66be4bfc68a",
+            "x": 966,
+            "y": 856,
+            "width": 295,
+            "height": 102,
+            "color": {}
+          },
+          {
+            "GUID": "fbb521f7-e91e-4f57-bd30-309d6fef07e9",
+            "x": 1014,
+            "y": 1049,
+            "width": 314,
+            "height": 132,
+            "color": {}
+          }
+        ],
+        "erdDefinitions": {
+          "erd": [],
+          "rootPath": [],
+          "entities": [],
+          "decorativeSymbols": []
+        },
+        "buckets": [],
+        "collapsedNodes": [],
+        "activeRelationship": "",
+        "activeRelationshipFields": {
+          "childField": [],
+          "parentField": []
+        },
+        "selectedCollections": [],
+        "displayColorPicker": false,
+        "graphView": {
+          "erd": [],
+          "buckets": [],
+          "decorativeSymbols": [],
+          "forceLayout": true,
+          "defaultLinkLength": 300
+        },
+        "diagramViews": [
+          {
+            "GUID": "5d1ed8fd-0e92-4fc5-b691-fa7614cc2c6d",
+            "entities": [
+              {
+                "GUID": "fbb521f7-e91e-4f57-bd30-309d6fef07e9",
+                "x": 1050,
+                "y": 1422,
+                "width": 282,
+                "height": 120,
+                "color": {}
+              },
+              {
+                "GUID": "b73320d2-9960-4608-9792-b66be4bfc68a",
+                "x": 1070.5,
+                "y": 1298,
+                "width": 241,
+                "height": 84,
+                "color": {}
+              },
+              {
+                "GUID": "7da3bd47-6f6c-4f00-b505-3afb2a217e71",
+                "x": 1083.5,
+                "y": 1174,
+                "width": 215,
+                "height": 84,
+                "color": {}
+              },
+              {
+                "GUID": "160f1ded-c17a-441a-b8df-84cd27713046",
+                "x": 1068,
+                "y": 1050,
+                "width": 246,
+                "height": 84,
+                "color": {}
+              }
+            ],
+            "buckets": [],
+            "graphView": {
+              "erd": [],
+              "buckets": [],
+              "decorativeSymbols": [],
+              "forceLayout": true,
+              "defaultLinkLength": 300
+            },
+            "displayOptions": {},
+            "relationships": [
+              {
+                "GUID": "30401f24-81e5-485c-b7ff-d8b76294c0af",
+                "autoPositioning": true,
+                "sides": [
+                  "right",
+                  "right"
+                ],
+                "shape": [
+                  {
+                    "x": 1298.5,
+                    "y": 1202
+                  },
+                  {
+                    "x": 1339,
+                    "y": 1202
+                  },
+                  {
+                    "x": 1339,
+                    "y": 1092
+                  },
+                  {
+                    "x": 1314,
+                    "y": 1092
+                  }
+                ]
+              },
+              {
+                "GUID": "cb397f9a-e514-4567-b52a-c573d209dbc9",
+                "autoPositioning": true,
+                "sides": [
+                  "right",
+                  "right"
+                ],
+                "shape": [
+                  {
+                    "x": 1311.5,
+                    "y": 1326
+                  },
+                  {
+                    "x": 1336.5,
+                    "y": 1326
+                  },
+                  {
+                    "x": 1336.5,
+                    "y": 1230
+                  },
+                  {
+                    "x": 1298.5,
+                    "y": 1230
+                  }
+                ]
+              },
+              {
+                "GUID": "0470ba1d-a6b5-4abe-a055-bf3a4a14e622",
+                "autoPositioning": true,
+                "sides": [
+                  "right",
+                  "right"
+                ],
+                "shape": [
+                  {
+                    "x": 1332,
+                    "y": 1482
+                  },
+                  {
+                    "x": 1357,
+                    "y": 1482
+                  },
+                  {
+                    "x": 1357,
+                    "y": 1354
+                  },
+                  {
+                    "x": 1311.5,
+                    "y": 1354
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "decorativeSymbols": [],
+        "nestedCollectionsLayout": "horizontal",
+        "options": [
+          {
+            "autoWidth": false,
+            "autoHeight": false,
+            "GUID": "160f1ded-c17a-441a-b8df-84cd27713046"
+          },
+          {
+            "autoWidth": false,
+            "autoHeight": false,
+            "GUID": "7da3bd47-6f6c-4f00-b505-3afb2a217e71"
+          },
+          {
+            "autoWidth": false,
+            "autoHeight": false,
+            "GUID": "b73320d2-9960-4608-9792-b66be4bfc68a"
+          },
+          {
+            "autoWidth": false,
+            "autoHeight": false,
+            "GUID": "fbb521f7-e91e-4f57-bd30-309d6fef07e9"
+          }
+        ],
+        "relationshipUpdateDisabled": false
+      },
+      "collectionLevel": {},
+      "changed": false
+    },
+    "dtDiagram": {
+      "collapsedNodes": [],
+      "shouldDistributeCollections": false
+    }
+  }
+}
