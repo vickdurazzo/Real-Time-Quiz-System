@@ -10,6 +10,10 @@ def create_app():
 
     # Import blueprints and register
     from app.routes.auth import auth_bp
+    from app.routes.quiz import quiz_bp
+    from app.routes.game import game_bp
     app.register_blueprint(auth_bp)
+    app.register_blueprint(quiz_bp)
+    app.register_blueprint(game_bp)
 
     return app

@@ -1,7 +1,8 @@
 
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session,current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models import db, User,Quiz,Question,Answer
+from app.services.redis_service import load_quiz_to_redis
 
 quiz_bp = Blueprint('quiz', __name__)
 
@@ -33,7 +34,7 @@ def quiz_route():
             new_quiz = Quiz(
                 user_id=session['user_id'],
                 title=quiz_title,
-                is_active = 0
+                is_active = False
             )
             db.session.add(new_quiz)
             db.session.commit()
@@ -196,3 +197,42 @@ def specific_quiz_route(quiz_id):
         except Exception as e:
             db.session.rollback()
             return jsonify({"message": f"Error: {str(e)}"}), 500
+
+@quiz_bp.route('/quiz/<quiz_id>/start', methods=['POST'])
+def start_game(quiz_id):
+    # Fetch quiz data from the database
+    quiz = Quiz.query.filter_by(quiz_id=quiz_id, user_id=session['user_id']).first()
+    if not quiz:
+        return jsonify({"message": "Quiz not found or not authorized to start"}), 404
+    if quiz.is_active:
+        return jsonify({'error': 'Quiz is already active'}), 400
+    
+    # Set quiz to active
+    quiz.is_active = True
+    db.session.commit()
+    
+    questions = Question.query.filter_by(quiz_id=quiz_id).all()
+    quiz_data = {
+        'quiz_id': str(quiz.quiz_id),  # Convert UUID to string
+        'title': quiz.title,
+        'questions': []
+    }
+
+    for question in questions:
+        answers = Answer.query.filter_by(question_id=question.question_id).all()
+        quiz_data['questions'].append({
+            'question_id': str(question.question_id),  # Convert UUID to string
+            'question_text': question.question_text,
+            'answers': [
+                {
+                    'answer_id': str(answer.answer_id),  # Convert UUID to string
+                    'answer_text': answer.answer_text,
+                    'nm_answer_option': answer.nm_answer_option
+                } for answer in answers
+            ]
+        })
+
+    # Load quiz data into Redis using redis-py
+    load_quiz_to_redis(current_app.redis_client, quiz.quiz_id, quiz_data)
+
+    return jsonify({'message': 'Game started', 'quiz_id': str(quiz.quiz_id)}), 200
