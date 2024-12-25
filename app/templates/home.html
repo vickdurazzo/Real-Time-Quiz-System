@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">QuizApp</a>
+            <button class="btn btn-outline-light ms-auto" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Bem vindo a Plataforma!</h1>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Seus Quizzes</h2>
+            <button class="btn btn-primary" onclick="createQuiz()">Create New Quiz</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Quiz Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="quizList">
+                    <!-- Example rows -->
+                    {% if quizzes %}
+                        {%for quiz in quizzes%}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{quiz.title}}</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-2" onclick="editQuiz('{{quiz.quiz_id}}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteQuiz('{{quiz.quiz_id}}')">Delete</button>
+                            </td>
+                        </tr>
+                        {%endfor%}
+                    {%else%}
+                    <td colspan="4">No quizzes created yet.</td>
+                    {% endif %}
+                    
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light text-center py-3 mt-4">
+        &copy; 2024 QuizApp. All rights reserved.
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript Functions -->
+    <script>
+        async function createQuiz() {
+            const createQuizUrl = "{{ url_for('quiz.quiz_route') }}";
+            event.preventDefault(); // Prevent the default form submission
+            try {
+                const response = await fetch(createQuizUrl, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (response.ok) {
+                    window.location.href = "{{ url_for('quiz.quiz_route') }}";
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`); // Show error message
+                }
+            } catch (err) {
+                console.error("Error:", err);
+                alert("An error occurred. Please try again.");
+            }
+        }
+
+        function editQuiz(quizId) {
+            // Redirect or open modal for editing quiz
+            alert(`Editing quiz ID: ${quizId}`);
+        }
+
+        function deleteQuiz(quizId) {
+            // Confirmation and delete action
+            if (confirm(`Are you sure you want to delete quiz ID: ${quizId}?`)) {
+                alert(`Quiz ID: ${quizId} deleted successfully.`);
+                // Logic to remove the quiz from the backend
+            }
+        }
+
+        async function logout() {
+            const logoutUrl = "{{ url_for('auth.logout') }}";
+            event.preventDefault(); // Prevent the default form submission
+            try {
+                const response = await fetch(logoutUrl, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (response.ok) {
+                    window.location.href = "{{ url_for('auth.home') }}";
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`); // Show error message
+                }
+            } catch (err) {
+                console.error("Error:", err);
+                alert("An error occurred. Please try again.");
+            }
+        }
+    </script>
+</body>
+</html>

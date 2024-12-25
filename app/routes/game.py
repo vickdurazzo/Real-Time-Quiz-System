@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, session, current_app
 import uuid
 import time
 import json
+from datetime import datetime
 
 game_bp = Blueprint('game', __name__)
 
@@ -65,6 +66,8 @@ def start_quiz_dynamics(quiz_id):
     return jsonify({"message": "Quiz started", "current_question": current_question}), 200
 
 
+
+
 @game_bp.route('/quiz/<quiz_id>/submit_answer', methods=['POST'])
 def submit_answer(quiz_id):
     """Submit an answer for the current question."""
@@ -78,12 +81,26 @@ def submit_answer(quiz_id):
     if not redis_client.sismember(players_key, username):
         return jsonify({"error": "Player not registered"}), 400
     
-    # Store the answer in Redis
-    answers_key = QUIZ_ANSWERS_KEY.format(quiz_id=quiz_id)
+    # Captura o índice da pergunta atual
     current_question_idx = int(redis_client.get(QUIZ_CURRENT_QUESTION_KEY.format(quiz_id=quiz_id)) or 0)
-    redis_client.hset(answers_key, f"{current_question_idx}:{username}", answer_id)
     
-    return jsonify({"message": "Answer submitted"}), 200
+    # Verifica se o jogador já respondeu à pergunta atual
+    answers_key = QUIZ_ANSWERS_KEY.format(quiz_id=quiz_id)
+    if redis_client.hexists(answers_key, f"{current_question_idx}:{username}"):
+        return jsonify({"error": "You have already submitted an answer for this question"}), 403
+    
+    # Captura o timestamp atual
+    submission_time = datetime.utcnow().isoformat()  # Usa UTC para consistência
+    
+    # Armazena a resposta e o timestamp no Redis
+    answer_record = {
+        "answer_id": answer_id,
+        "timestamp": submission_time
+    }
+    redis_client.hset(answers_key, f"{current_question_idx}:{username}", json.dumps(answer_record))
+    
+    return jsonify({"message": "Answer submitted", "timestamp": submission_time}), 200
+
 
 
 @game_bp.route('/quiz/<quiz_id>/next_question', methods=['POST'])
@@ -95,7 +112,7 @@ def next_question(quiz_id):
     if not quiz_data:
         return jsonify({"error": "Quiz data not found"}), 404
     quiz_data = json.loads(quiz_data)
-    
+
     current_question_idx = int(redis_client.get(quiz_key) or 0)
     questions = quiz_data.get('questions', [])
     
@@ -108,3 +125,6 @@ def next_question(quiz_id):
     current_question = questions[current_question_idx]
     
     return jsonify({"message": "Next question", "current_question": current_question}), 200
+
+
+    

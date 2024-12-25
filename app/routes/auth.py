@@ -1,10 +1,17 @@
 # auth.py
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session,render_template,redirect,url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.models import db, User
+from app.models import db, User,Quiz
 
 auth_bp = Blueprint('auth', __name__)
-@auth_bp.route('/login', methods=['POST'])
+
+@auth_bp.route('/')
+def root():
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    return render_template('home.html')
+
+@auth_bp.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
         try:
@@ -16,7 +23,8 @@ def login():
                 if user and check_password_hash(user.des_user_passwd, password):
                     session['user_id'] = user.user_id
                     print(session['user_id'])
-                    return jsonify({"message": "Login successful!"}), 200
+                    #return jsonify({"message": "Login successful!"}), 200
+                    return render_template('home.html')
                 else:
                     return jsonify({"message": "Invalid credentials"}), 401
             else:
@@ -30,11 +38,9 @@ def register():
     if request.method == 'POST':
         if request.is_json:
             data = request.get_json()
-            print(data)
             username = data.get('username')
             password = data.get('password')
             hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-            print(hashed_password)
             try:
                 new_user = User(
                     nm_user=username,
@@ -48,18 +54,24 @@ def register():
                 print(f"Error: {str(e)}")
                 return jsonify({"message": f"Error: {str(e)}"}), 500
     
-    if request.method == 'GET':
-        users = User.query.all()
-        return jsonify([user.to_dict() for user in users])  # Convert to dict and return as JSON
+    #if request.method == 'GET':
+        #users = User.query.all()
+        #return jsonify([user.to_dict() for user in users])  # Convert to dict and return as JSON
     return render_template('register.html')
 
 @auth_bp.route('/logout')
 def logout():
     session.pop('user_id', None)
-    return redirect(url_for('home'))
+    return redirect(url_for('auth.home'))
 
-@auth_bp.route('/home')
+@auth_bp.route('/home',methods=['GET'])
 def home():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
-    return render_template('home.html')
+        return redirect(url_for('auth.login'))
+    try:
+        quizzes = Quiz.query.filter_by(user_id=session['user_id']).all()
+        if not quizzes:
+            quizzes = []  # Pass an empty list if no quizzes exist
+        return render_template('home.html', quizzes=quizzes)
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500

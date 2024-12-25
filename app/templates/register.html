@@ -4,26 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <title>Login</title>
+    <title>Register</title>
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Teacher Login</h2>
-        <form id="login-form">
+        <h2>Teacher Registration</h2>
+        <form id="register-form">
             <div class="form-group">
-                <label for="username">Username</label>
+                <label for="name">Username</label>
                 <input type="text" class="form-control" id="username" name="username" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
-            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="submit" class="btn btn-primary">Register</button>
         </form>
-        <p class="mt-3">Don't have an account? <a href="{{ url_for('register') }}">Register here</a>.</p>
+        <p class="mt-3">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a>.</p>
     </div>
     <script>
-        document.getElementById("login-form").addEventListener("submit", async function(event) {
+        document.getElementById("register-form").addEventListener("submit", async function(event) {
             event.preventDefault(); // Prevent the default form submission
     
             const formData = {
@@ -32,7 +32,7 @@
             };
     
             try {
-                const response = await fetch("{{ url_for('login') }}", {
+                const response = await fetch("{{ url_for('auth.register') }}", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -58,7 +58,5 @@
             }
         });
     </script>
-    
-
 </body>
 </html>

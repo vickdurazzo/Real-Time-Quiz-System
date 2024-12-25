@@ -1,5 +1,5 @@
 
-from flask import Blueprint, request, jsonify, session,current_app
+from flask import Blueprint, request, jsonify, session,current_app,redirect,url_for,render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models import db, User,Quiz,Question,Answer
 from app.services.redis_service import load_quiz_to_redis
@@ -11,19 +11,8 @@ quiz_bp = Blueprint('quiz', __name__)
 def quiz_route():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    #Return Quizzes
     if request.method == 'GET':
-        try:
-            quizzes = Quiz.query.filter_by(user_id=session['user_id']).all()  # Fetch all quizzes for the user
-            if not quizzes:
-                return jsonify({"message": "You don't have any quizzes yet"}), 404
-            
-            quizzes_data = [quiz.to_dict() for quiz in quizzes]  # Convert each quiz to a dictionary
-
-            return jsonify(quizzes_data), 200
-
-        except Exception as e:
-            return jsonify({"message": f"Error: {str(e)}"}), 500
+        return render_template('create_quiz.html')
     #Create Quiz
     if request.method == 'POST':
         try:
@@ -100,11 +89,8 @@ def specific_quiz_route(quiz_id):
 
             # Update quiz title and is_active status
             quiz_title = data.get('quiz_title')
-            is_active = data.get('is_active')
             if quiz_title is not None:
                 quiz.title = quiz_title
-            if is_active is not None:
-                quiz.is_active = is_active
 
             # Update questions and answers
             updated_questions = data.get('questions', [])
@@ -198,7 +184,7 @@ def specific_quiz_route(quiz_id):
             db.session.rollback()
             return jsonify({"message": f"Error: {str(e)}"}), 500
 
-@quiz_bp.route('/quiz/<quiz_id>/start', methods=['POST'])
+@quiz_bp.route('/quiz/<quiz_id>/start', methods=['GET'])
 def start_game(quiz_id):
     # Fetch quiz data from the database
     quiz = Quiz.query.filter_by(quiz_id=quiz_id, user_id=session['user_id']).first()
@@ -227,7 +213,8 @@ def start_game(quiz_id):
                 {
                     'answer_id': str(answer.answer_id),  # Convert UUID to string
                     'answer_text': answer.answer_text,
-                    'nm_answer_option': answer.nm_answer_option
+                    'nm_answer_option': answer.nm_answer_option,
+                    'is_correct': answer.is_correct
                 } for answer in answers
             ]
         })
