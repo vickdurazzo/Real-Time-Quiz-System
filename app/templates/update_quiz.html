@@ -3,163 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atualizar Quiz</title>
+    <title>Atualizador de Quiz</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Atualize seu Quiz</h1>
-        <form id="update-quiz-form">
+        <h1 class="text-center">Atualize um Quiz</h1>
+        <form id="quiz-form">
             <!-- Quiz Title -->
             <div class="form-group">
-                <label for="quiz-title">Titulo do Quiz</label>
-                <input type="text" class="form-control" id="quiz-title" name="quiz_title" placeholder="Atualize o titulo do Quiz" required>
+                <label for="quiz-title">Título do Quiz</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="quiz-title" 
+                       name="quiz_title" 
+                       placeholder="Preencha o título do Quiz" 
+                       value="{{ quiz_data.title }}" 
+                       required 
+                       aria-label="Título do Quiz">
             </div>
 
             <!-- Questions Container -->
             <div id="questions-container">
-                <!-- Questions will be dynamically added here -->
+                {% for question in quiz_data.questions %}
+                {% set i = loop.index %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Questão</h5>
+                        <div class="form-group">
+                            <label for="question[{{ i }}]">Texto da Questão:</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="question[{{ i }}]" 
+                                   name="question[{{ i }}][question_text]" 
+                                   placeholder="Texto da questão" 
+                                   value="{{ question.question_text }}" 
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label>Opções:</label>
+                            {% for answer in question.answers %}
+                            {% set j = loop.index %}
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       id="question[{{ i }}]option[{{j}}]" 
+                                       name="question[{{ i }}][question_answer]" 
+                                       value="{{ answer.nm_answer_option }}" 
+                                       {% if answer.is_correct %}checked{% endif %} 
+                                       required>
+                                <label class="form-check-label" for="question[{{ i }}]option[{{j}}]">
+                                    {{ answer.nm_answer_option }}: 
+                                    <input type="text" 
+                                           class="form-control d-inline w-75" 
+                                           name="question[{{ i }}][options][{{ answer.nm_answer_option }}]" 
+                                           placeholder="Opção {{ answer.nm_answer_option }}" 
+                                           value="{{ answer.answer_text }}" 
+                                           required>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestion(this)">Remova a questão</button>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
 
             <!-- Add Question Button -->
             <button type="button" class="btn btn-primary mb-3" onclick="addQuestion()">Adicionar Pergunta</button>
             
             <!-- Submit Button -->
-            <button type="submit" class="btn btn-success mb-3">Atualizar Quiz</button>
+            <button type="submit" class="btn btn-success mb-3">Enviar Quiz</button>
         </form>
     </div>
 
+    <!-- JavaScript for Adding Questions -->
     <script>
-        let questionCount = 0;
+        let questionCount = {{ quiz_data.questions | length }};
+        
 
-        document.getElementById("update-quiz-form").addEventListener("submit", async function(event) {
+        console.log('Initial question count:', questionCount);
+
+
+        document.getElementById("quiz-form").addEventListener("submit", async function(event) {
             event.preventDefault();
-            
+
             const quizTitle = document.getElementById('quiz-title').value;
-            const questions = [];
-            
-            document.querySelectorAll('#questions-container .card').forEach((card, index) => {
-                const questionId = card.getAttribute('data-question-id');
-                const questionText = card.querySelector(`input[name="questions[${index + 1}][text]"]`).value;
-                const answers = [];
 
-                card.querySelectorAll('.form-check').forEach((option) => {
-                    const answerId = option.getAttribute('data-answer-id');
-                    const optionKey = option.querySelector('input.form-check-input').value;
-                    const optionValue = option.querySelector('input.form-control').value;
-                    const isCorrect = option.querySelector('input.form-check-input').checked;
+            const questions = Array.from(document.querySelectorAll('#questions-container .card')).map((card, index) => {
 
-                    answers.push({
-                        answer_id: answerId || null, // Null for new answers
-                        answer_text: optionValue,
-                        is_correct: isCorrect,
-                        nm_answer_option: optionKey
-                    });
+                const questionText = card.querySelector(`input[name="question[${index+1}][question_text]"]`).value;
+                const options = {};
+                const correctOption = card.querySelector(`input[name="question[${index+1}][question_answer]"]:checked`)?.value;
+                card.querySelectorAll('.form-check').forEach(option => {
+                    const key = option.querySelector('input.form-check-input').value;
+                    const value = option.querySelector('input.form-control').value;
+                    options[key] = value;
                 });
-
-                questions.push({
-                    question_id: questionId || null, // Null for new questions
+                return {
                     question_text: questionText,
-                    answers: answers
-                });
+                    answers: Object.entries(options).map(([key, value]) => ({
+                        answer_text: value,
+                        is_correct: key === correctOption,
+                        nm_answer_option: key
+                    }))
+                };
+                
+                
             });
-
-            const payload = {
-                quiz_title: quizTitle,
-                questions: questions
-            };
-
+        
+            const payload = { quiz_title: quizTitle, questions }
+            
             try {
-                const response = await fetch(`/your_update_quiz_endpoint`, {
+                const response = await fetch("{{ url_for('quiz.specific_quiz_route', quiz_id=quiz_data.quiz_id) }}", {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
                 if (response.ok) {
                     const result = await response.json();
                     alert(result.message);
+                    window.location.href = "{{ url_for('auth.home') }}";
                 } else {
                     const error = await response.json();
                     alert(`Error: ${error.message}`);
                 }
             } catch (error) {
-                console.error('An error occurred:', error);
+                console.error('Error occurred:', error);
                 alert('Failed to update the quiz. Please try again.');
             }
+            
         });
 
-        function addQuestion(question = {}) {
+        function addQuestion() {
             questionCount++;
+            
+            const container = document.createElement('div');
+            container.className = 'card mb-3';
 
-            const questionId = question.question_id || null;
-            const questionText = question.question_text || "";
-            const answers = question.answers || [
-                { answer_id: null, nm_answer_option: "A", answer_text: "", is_correct: false },
-                { answer_id: null, nm_answer_option: "B", answer_text: "", is_correct: false },
-                { answer_id: null, nm_answer_option: "C", answer_text: "", is_correct: false },
-                { answer_id: null, nm_answer_option: "D", answer_text: "", is_correct: false }
-            ];
-
-            const questionContainer = document.createElement('div');
-            questionContainer.className = 'card mb-3';
-            questionContainer.setAttribute('data-question-id', questionId);
-            questionContainer.innerHTML = `
-                <div class="card-body">
-                    <h5 class="card-title">Questão ${questionCount}</h5>
-                    <div class="form-group">
-                        <label for="question-${questionCount}">Texto da Questão:</label>
-                        <input type="text" class="form-control" id="question-${questionCount}" name="questions[${questionCount}][text]" value="${questionText}" required>
+            container.innerHTML = `
+            <div class="card-body">
+                        <h5 class="card-title">Questão</h5>
+                        <div class="form-group">
+                            <label for="question[${questionCount}]">Texto da Questão:</label>
+                            <input type="text" class="form-control" 
+                            id="question[${questionCount}]" 
+                            name="question[${questionCount}][question_text]" 
+                            placeholder="Texto da questão" 
+                            value="" required="">
+                        </div>
+                        <div class="form-group">
+                            <label>Opções:</label>
+                            ${['A', 'B', 'C', 'D'].map((option,index) => `
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                    type="radio" 
+                                    id="question[${questionCount}]option[${index+1}]"
+                                    name="question[${questionCount}][question_answer]" 
+                                    value="${option}" required="">
+                                    <label class="form-check-label" for="question[${questionCount}]option[${index+1}]">
+                                        ${option}: 
+                                        <input type="text" 
+                                        class="form-control d-inline w-75" 
+                                        name="question[${questionCount}][options][${option}]" 
+                                        placeholder="Opção ${option}" 
+                                        value="" required="">
+                                    </label>
+                                </div>`).join('')
+                            }
+                            
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestion(this)">Remova a questão</button>
                     </div>
-                    <div class="form-group">
-                        <label>Opções:</label>
-                        ${answers.map((answer, i) => `
-                            <div class="form-check" data-answer-id="${answer.answer_id || ''}">
-                                <input class="form-check-input" type="radio" name="questions[${questionCount}][correct]" value="${answer.nm_answer_option}" ${answer.is_correct ? 'checked' : ''} required>
-                                <label class="form-check-label">
-                                    ${answer.nm_answer_option}: <input type="text" class="form-control d-inline w-75" name="questions[${questionCount}][options][${answer.nm_answer_option}]" value="${answer.answer_text}" required>
-                                </label>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestion(this)">Remova a questão</button>
-                </div>
             `;
-
-            document.getElementById('questions-container').appendChild(questionContainer);
+            document.getElementById('questions-container').appendChild(container);
         }
 
         function removeQuestion(button) {
             button.closest('.card').remove();
         }
-
-        // Example preloaded data (Replace with actual data for editing)
-        const preloadedQuiz = {
-            quiz_title: "Exemplo de Quiz",
-            questions: [
-                {
-                    question_id: 1,
-                    question_text: "Qual é a capital do Brasil?",
-                    answers: [
-                        { answer_id: 1, nm_answer_option: "A", answer_text: "São Paulo", is_correct: false },
-                        { answer_id: 2, nm_answer_option: "B", answer_text: "Rio de Janeiro", is_correct: false },
-                        { answer_id: 3, nm_answer_option: "C", answer_text: "Brasília", is_correct: true },
-                        { answer_id: 4, nm_answer_option: "D", answer_text: "Salvador", is_correct: false }
-                    ]
-                }
-            ]
-        };
-
-        // Populate form with preloaded data
-        document.getElementById('quiz-title').value = preloadedQuiz.quiz_title;
-        preloadedQuiz.questions.forEach(addQuestion);
     </script>
 
     <!-- Bootstrap JS and Dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.4.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>

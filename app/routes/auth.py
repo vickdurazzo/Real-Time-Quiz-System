@@ -9,7 +9,13 @@ auth_bp = Blueprint('auth', __name__)
 def root():
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-    return render_template('home.html')
+    try:
+        quizzes = Quiz.query.filter_by(user_id=session['user_id']).all()
+        if not quizzes:
+            quizzes = []  # Pass an empty list if no quizzes exist
+        return render_template('home.html', quizzes=quizzes)
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
 
 @auth_bp.route('/login', methods=['GET','POST'])
 def login():

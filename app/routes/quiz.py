@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify, session,current_app,redirect,url_for,render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models import db, User,Quiz,Question,Answer
-from app.services.redis_service import load_quiz_to_redis
+from app.services.redis_service import load_quiz_to_redis,delete_quiz_from_redis
 
 quiz_bp = Blueprint('quiz', __name__)
 
@@ -74,11 +74,13 @@ def specific_quiz_route(quiz_id):
                 question_data['answers'] = [answer.to_dict() for answer in answers]
                 quiz_data['questions'].append(question_data)
 
-            return jsonify(quiz_data), 200
+            return render_template('update_quiz.html',quiz_data = quiz_data)
+            #return f"<pre>{quiz_data}</pre>"
 
         except Exception as e:
             return jsonify({"message": f"Error: {str(e)}"}), 500
-       
+        
+        
     # Update Quiz
     if request.method == 'PUT':
         try:
@@ -190,10 +192,15 @@ def start_game(quiz_id):
     quiz = Quiz.query.filter_by(quiz_id=quiz_id, user_id=session['user_id']).first()
     if not quiz:
         return jsonify({"message": "Quiz not found or not authorized to start"}), 404
+
     if quiz.is_active:
-        return jsonify({'error': 'Quiz is already active'}), 400
-    
-    # Set quiz to active
+        # Desativa o quiz e remove os dados do Redis
+        quiz.is_active = False
+        db.session.commit()
+        delete_quiz_from_redis(current_app.redis_client, quiz.quiz_id)
+        return jsonify({'message': 'Quiz desativado com sucesso'}), 200
+
+    # Ativa o quiz
     quiz.is_active = True
     db.session.commit()
     

@@ -12,3 +12,18 @@ def get_quiz_from_redis(redis_client, quiz_id):
     if quiz_data:
         return json.loads(quiz_data)
     return None
+
+def delete_quiz_from_redis(redis_client, quiz_id):
+    """
+    Delete quiz data from Redis.
+
+    Args:
+        redis_client: Redis client instance.
+        quiz_id: ID of the quiz to delete.
+
+    Returns:
+        bool: True if the key was deleted, False if the key did not exist.
+    """
+    redis_key = f"quiz:{quiz_id}"
+    result = redis_client.delete(redis_key)
+    return result > 0
