@@ -39,11 +39,11 @@
                         {%for quiz in quizzes%}
                         <tr data-quiz-id="{{ quiz.quiz_id }}">
                             <td>{{ loop.index }}</td>
-                            <td>{{quiz.title}}</td>
+                            <td>{{ quiz.title }}</td>
                             <td>
                                 <button class="btn btn-warning btn-sm me-2" onclick="editQuiz('{{quiz.quiz_id}}')">Editar</button>
-                                <button class="btn btn-success btn-sm btn-action" 
-                                onclick="StartQuiz('{{ quiz.quiz_id }}', false)">Iniciar</button>
+                                <button class="btn btn-success btn-sm btn-action" onclick="ActiveQuiz('{{ quiz.quiz_id }}', false)">Ativar</button>
+                                <button class="btn btn-info btn-sm btn-game" onclick="StartQuiz('{{ quiz.quiz_id }}')" disabled>Iniciar</button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteQuiz('{{quiz.quiz_id}}')">Deletar</button>
                             </td>
                             <td></td>
@@ -96,53 +96,99 @@
             window.location.href = `/quiz/${quizId}`;
         }
 
-        async function StartQuiz(quizId, isActive) {
-    // Determina a ação com base no estado atual
-    const action = isActive ? "desativar" : "iniciar";
-    if (confirm(`Tem certeza que quer ${action} o quiz ID: ${quizId}?`)) {
-        try {
-            const endpoint = `/quiz/${quizId}/start`;
-            const response = await fetch(endpoint, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
+        async function ActiveQuiz(quizId, isActive) {
+            
+        // Determina a ação com base no estado atual
+        
+        const action = isActive ? "desativar" : "ativar";
+        if (confirm(`Tem certeza que quer ${action} o quiz ID: ${quizId}?`)) {
+            try {
+                const endpoint = `/quiz/${quizId}/start`;
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
 
-            if (response.ok) {
-                const row = document.querySelector(`tr[data-quiz-id="${quizId}"]`);
-                if (row) {
-                    const linkCell = row.querySelector('td:last-child');
-                    const actionButton = row.querySelector('.btn-action');
+                if (response.ok) {
+                    const row = document.querySelector(`tr[data-quiz-id="${quizId}"]`);
+                    if (row) {
+                        const linkCell = row.querySelector('td:last-child');
+                        const actionButton = row.querySelector('.btn-action');
+                        const startButton = row.querySelector('.btn-game'); // Localiza o botão Iniciar
 
-                    if (isActive) {
-                        // Remove o link e atualiza o botão para "Iniciar"
-                        linkCell.innerHTML = '';
-                        actionButton.textContent = 'Iniciar';
-                        actionButton.classList.remove('btn-danger');
-                        actionButton.classList.add('btn-success');
-                        actionButton.setAttribute('onclick', `StartQuiz('${quizId}', false)`);
-                    } else {
-                        // Adiciona o link e atualiza o botão para "Desativar"
-                        const currentUrl = window.location.origin; // Obtém o endereço atual
-                        const quizLink = `${currentUrl}/quiz/${quizId}/join`; // Gera o link do quiz
-                        linkCell.innerHTML = `<a href="${quizLink}" target="_blank">${quizLink}</a>`;
-                        actionButton.textContent = 'Desativar';
-                        actionButton.classList.remove('btn-success');
-                        actionButton.classList.add('btn-danger');
-                        actionButton.setAttribute('onclick', `StartQuiz('${quizId}', true)`);
+                        if (isActive) {
+                            // Remove o link e atualiza o botão para "Ativar"
+                            linkCell.innerHTML = '';
+                            actionButton.textContent = 'Ativar';
+                            actionButton.classList.remove('btn-danger');
+                            actionButton.classList.add('btn-success');
+                            actionButton.setAttribute('onclick', `ActiveQuiz('${quizId}', false)`);
+
+                            // Desabilita o botão Iniciar
+                            if (startButton) {
+                                startButton.disabled = true;
+                            }
+                        } else {
+                            // Adiciona o link e atualiza o botão para "Desativar"
+                            const currentUrl = window.location.origin; // Obtém o endereço atual
+                            const quizLink = `${currentUrl}/quiz/${quizId}/join`; // Gera o link do quiz
+                            linkCell.innerHTML = `<a href="${quizLink}" target="_blank">${quizLink}</a>`;
+                            actionButton.textContent = 'Desativar';
+                            actionButton.classList.remove('btn-success');
+                            actionButton.classList.add('btn-danger');
+                            actionButton.setAttribute('onclick', `ActiveQuiz('${quizId}', true)`);
+
+                            // Habilita o botão Iniciar
+                            if (startButton) {
+                                startButton.disabled = false;
+                            }
+                        }
                     }
-                }
 
-                alert(`Quiz ID: ${quizId} ${isActive ? "desativado" : "iniciado"} com sucesso.`);
-            } else {
-                const error = await response.json();
-                alert(`Erro: ${error.message}`);
+                    alert(`Quiz ID: ${quizId} ${isActive ? "desativado" : "ativado"} com sucesso.`);
+                } else {
+                    const error = await response.json();
+                    alert(`Erro: ${error.message}`);
+                }
+            } catch (error) {
+                console.error('Ocorreu um erro:', error);
+                alert(`Falha ao ${action} o quiz. Por favor, tente novamente.`);
             }
-        } catch (error) {
-            console.error('Ocorreu um erro:', error);
-            alert(`Falha ao ${action} o quiz. Por favor, tente novamente.`);
         }
-    }
+    
+    
+    
 }
+
+    function StartQuiz(quizId) {
+            // Construct the API endpoint
+            const apiUrl = `/quiz/${quizId}/start_dynamics`;
+
+            // Send a POST request to start the quiz dynamics
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`Failed to start quiz: ${response.statusText}`);
+                }
+            })
+            .then(data => {
+                // Success: Inform the user that the quiz has started
+                alert(data.message || 'Quiz started successfully!');
+                // Optionally, you can enable additional UI elements here
+            })
+            .catch(error => {
+                // Handle errors
+                console.error('Error starting quiz:', error);
+                alert('An error occurred while starting the quiz. Please try again.');
+            });
+        }
 
         async function deleteQuiz(quizId) {
 

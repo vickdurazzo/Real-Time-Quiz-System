@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Continuous Update Demo</title>
+ <!-- Pull in jQuery from Google-->
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+ <div>
+   <h2>A continuously updated list:</h2>
+   <ul id="culist">
+   </ul>
+ </div>
+
+ <script type="text/javascript">
+    function requestUpdate() {  // 3
+        console.log("DEBUG: requesting update");
+    
+        $.getJSON('/_refresh', function(result) {  // 4
+            console.log("DEBUG: Received data:", result.data); // Verifique o valor real de result.data
+    
+            // Verificar se a resposta contém 'undefined'
+            if (result.data === undefined) {
+                console.log("DEBUG: Received undefined, stopping updates.");
+                // Interrompe as atualizações (limpa o intervalo)
+                clearInterval(intervalID);
+                window.location.href = '/quiz/end'; // Redireciona para a página de fim de quiz
+                
+                alert("Quiz completed or invalid response.");
+            } else {
+                var HTML = "<li>" + result.data + "</li>";
+                $("#culist").append(HTML);
+            }
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            // Verificar se o erro é um 404
+            if (jqXHR.status === 404) {
+                console.log("DEBUG: 404 error on /_refresh, redirecting to quiz end page.");
+                window.location.href = '/quiz/end'; // Redireciona para a página de fim de quiz
+            } else {
+                console.log("DEBUG: Error on GET request:", textStatus, errorThrown);
+            }
+        });
+    }
+    
+    // This fires just once when the site initially loads
+    $(document).ready(function() {  // 1
+        console.log("DEBUG: document ready");
+        // Get first element for list
+        requestUpdate();
+        // Ensure list is updated every 5s
+        var intervalID = setInterval(requestUpdate, 5000);  // 2
+    });
+    </script>
+    
+
+</body>
+</html>
