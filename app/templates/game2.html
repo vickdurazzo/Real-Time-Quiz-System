@@ -1,125 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Game</title>
-    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .question-container, .username-container { margin-top: 20px; }
-        .timer { font-weight: bold; margin-top: 10px; }
-    </style>
-</head>
 <body>
-    <h1>Quiz Game</h1>
-    <div id="username-container" class="username-container">
-        <label for="username">Enter your username:</label>
-        <input type="text" id="username" placeholder="Username">
-        <button onclick="registerUsername()">Join Game</button>
-        <p id="username-error" style="color: red; display: none;"></p>
-    </div>
-    <div id="question-container" class="question-container" style="display: none;">
-        <h2 id="question-text"></h2>
-        <div id="options"></div>
-        <div class="timer">Time remaining: <span id="timer">20</span> seconds</div>
+    <div>
+        <h2>Question:</h2>
+        <p id="question">Waiting for the next question...</p>
+        <button id="confirmBtn" style="display:none;">Confirm</button>
     </div>
 
-    <script>
-        const socket = io();
-        let username = null;
+    <script type="text/javascript">
+        function requestUpdate() {
+            console.log("DEBUG: requesting update");
 
-        const quiz_id = '46ba8128-e3a3-4b53-9a39-c5c64d9eacab'; // Replace with actual quiz ID dynamically
+            $.getJSON('/_refresh', function(result) {
+                console.log("DEBUG: Received data:", result.data);
 
-        function registerUsername() {
-            const enteredUsername = document.getElementById('username').value.trim();
-            if (!enteredUsername) {
-                displayError("Username cannot be empty.");
-                return;
-            }
-
-            fetch(`/quiz/${quiz_id}/join`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: enteredUsername })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    displayError(data.error);
+                if (result.data === undefined) {
+                    console.log("DEBUG: Received undefined, stopping updates.");
+                    clearInterval(intervalID);
+                    alert("Quiz completed!");
                 } else {
-                    username = enteredUsername;
-                    socket.emit('join_quiz_room', { quiz_id, username }); // Emit the join event
-                    document.getElementById('username-container').style.display = 'none';
-                    alert(data.message);
+                    // Display question and show confirm button
+                    $("#question").text(result.data);
+                    $("#confirmBtn").show();
                 }
-            })
-            .catch(err => console.error(err));
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.log("DEBUG: Error on GET request:", textStatus, errorThrown);
+            });
         }
 
-        function displayError(message) {
-            const errorElement = document.getElementById('username-error');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
+        function confirmQuestion() {
+            const quizId = '{{ quiz_id }}';
+            const username = '{{ username }}';
+
+            $.ajax({
+                url: `/quiz/${quizId}/${username}/confirm_question`,
+                type: 'POST',
+                contentType: 'application/json',
+                success: function(response) {
+                    console.log(response.message);
+                    $("#confirmBtn").hide(); // Hide confirm button after confirmation
+                },
+                error: function(xhr) {
+                    console.error("Error confirming question:", xhr);
+                }
+            });
         }
 
-        socket.on('connect', () => {
-            console.log('Connected to WebSocket server.');
-        });
-        socket.on('disconnect', () => {
-            console.log('Disconnected from WebSocket server.');
-        });
+        $(document).ready(function() {
+            console.log("DEBUG: document ready");
+            const quizId = '{{ quiz_id }}';
+            const username = '{{ username }}';
 
-        socket.on('room_joined', (data) => {
-            console.log(data.message); // Log confirmation of room join
-        });
-
-
-        socket.on('question', (data) => {
-            console.log(data)
-            /*const questionContainer = document.getElementById('question-container');
-            const questionText = document.getElementById('question-text');
-            const options = document.getElementById('options');
-            const timer = document.getElementById('timer');
-
-            questionText.textContent = data.question.text;
-            options.innerHTML = '';
-            data.question.options.forEach((option, idx) => {
-                const button = document.createElement('button');
-                button.textContent = option;
-                button.onclick = () => submitAnswer(idx);
-                options.appendChild(button);
+            // Automatically mark the player as ready when the page loads
+            $.ajax({
+                url: `/quiz/${quizId}/${username}/mark_ready`,
+                type: 'POST',
+                contentType: 'application/json',
+                success: function(response) {
+                    console.log(response.message);
+                },
+                error: function(xhr) {
+                    console.error("Error marking player as ready:", xhr);
+                }
             });
 
-            questionContainer.style.display = 'block';
-            timer.textContent = '20';
-            clearInterval(window.timerInterval);
-            window.timerInterval = setInterval(() => {
-                const timeLeft = parseInt(timer.textContent, 10) - 1;
-                if (timeLeft <= 0) {
-                    clearInterval(window.timerInterval);
-                } else {
-                    timer.textContent = timeLeft;
-                }
-            }, 1000);*/
-            
-        });
+            $("#confirmBtn").click(confirmQuestion);
 
-        socket.on('quiz_finished', () => {
-            alert("The quiz is finished!");
-            document.getElementById('question-container').style.display = 'none';
+            requestUpdate();
+            var intervalID = setInterval(requestUpdate, 5000);
         });
-
-        function submitAnswer(answerId) {
-            fetch(`/quiz/${quiz_id}/submit_answer`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, answer_id: answerId })
-            })
-            .then(response => response.json())
-            .then(data => alert(data.message))
-            .catch(err => console.error(err));
-        }
     </script>
 </body>
-</html>

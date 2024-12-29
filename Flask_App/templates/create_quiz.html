@@ -67,7 +67,7 @@
             };
            
             try {
-                const response = await fetch("{{ url_for('quiz.quiz_route') }}", {
+                const response = await fetch("{{ url_for('quiz_route') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -78,7 +78,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     alert(result.message);
-                    window.location.href = "{{ url_for('auth.home') }}";
+                    window.location.href = "{{ url_for('home') }}";
                 } else {
                     const error = await response.json();
                     alert(`Error: ${error.message}`);

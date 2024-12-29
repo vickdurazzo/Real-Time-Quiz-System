@@ -117,7 +117,7 @@
             const payload = { quiz_title: quizTitle, questions }
             
             try {
-                const response = await fetch("{{ url_for('quiz.specific_quiz_route', quiz_id=quiz_data.quiz_id) }}", {
+                const response = await fetch("{{ url_for('specific_quiz_route', quiz_id=quiz_data.quiz_id) }}", {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -126,7 +126,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     alert(result.message);
-                    window.location.href = "{{ url_for('auth.home') }}";
+                    window.location.href = "{{ url_for('home') }}";
                 } else {
                     const error = await response.json();
                     alert(`Error: ${error.message}`);

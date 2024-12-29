@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket com Flask</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const socket = io();
+
+            // Enviar mensagem ao servidor
+            $('#sendMessage').click(function () {
+                const msg = $('#message').val();
+                socket.send(msg);
+                $('#message').val(''); // Limpar o campo de entrada
+            });
+
+            // Receber mensagens do servidor
+            socket.on('message', function (msg) {
+                $('#messages').append(`<li>${msg}</li>`);
+            });
+
+            // Enviar evento customizado
+            $('#sendEvent').click(function () {
+                socket.emit('custom_event', { data: 'Dado customizado do cliente' });
+            });
+
+            // Receber resposta do evento customizado
+            socket.on('response', function (data) {
+                console.log("Resposta do servidor:", data);
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>WebSocket com Flask</h1>
+    <input type="text" id="message" placeholder="Digite sua mensagem">
+    <button id="sendMessage">Enviar Mensagem</button>
+    <button id="sendEvent">Enviar Evento Customizado</button>
+    <ul id="messages"></ul>
+</body>
+</html>

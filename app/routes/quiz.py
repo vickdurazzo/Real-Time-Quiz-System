@@ -11,10 +11,11 @@ quiz_bp = Blueprint('quiz', __name__)
 def quiz_route():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    if request.method == 'GET':
+    
+    if request.method == 'GET':#ACESSAR A PAGINA DE CRIACAO
         return render_template('create_quiz.html')
-    #Create Quiz
-    if request.method == 'POST':
+
+    if request.method == 'POST': #CRIAR QUIZ
         try:
             data = request.get_json()
             quiz_title = data.get('quiz_title')
@@ -52,13 +53,13 @@ def quiz_route():
             db.session.rollback()
             return jsonify({"message": f"Error: {str(e)}"}), 500
         
-# Specific quiz
-@quiz_bp.route('/quiz/<quiz_id>', methods=['GET','PUT','DELETE']) #Get specific quiz data
+
+@quiz_bp.route('/quiz/<quiz_id>', methods=['GET','PUT','DELETE']) # MANIPULACAO DE UM QUIZ ESPECIFICO
 def specific_quiz_route(quiz_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    #Return Quiz Data
-    if request.method == 'GET':
+
+    if request.method == 'GET': # ACESSAR INFO QUIZ ESPECIFICO
         try:
             quiz = Quiz.query.filter_by(quiz_id=quiz_id).first()
             if not quiz:
@@ -81,8 +82,8 @@ def specific_quiz_route(quiz_id):
             return jsonify({"message": f"Error: {str(e)}"}), 500
         
         
-    # Update Quiz
-    if request.method == 'PUT':
+    
+    if request.method == 'PUT': #ATUALIZACAO QUIZ
         try:
             data = request.get_json()
             quiz = Quiz.query.filter_by(quiz_id=quiz_id, user_id=session['user_id']).first()
@@ -166,7 +167,7 @@ def specific_quiz_route(quiz_id):
             return jsonify({"message": f"Error: {str(e)}"}), 500
         
     #Delete Quiz
-    if request.method == 'DELETE':
+    if request.method == 'DELETE': #DELECAO DO QUIZ
         try:
             quiz = Quiz.query.filter_by(quiz_id=quiz_id, user_id=session['user_id']).first()
             if not quiz:
@@ -186,7 +187,9 @@ def specific_quiz_route(quiz_id):
             db.session.rollback()
             return jsonify({"message": f"Error: {str(e)}"}), 500
 
-@quiz_bp.route('/quiz/<quiz_id>/start', methods=['GET'])
+
+
+@quiz_bp.route('/quiz/<quiz_id>/start', methods=['GET']) #INICIAR O JOGO
 def start_game(quiz_id):
     # Fetch quiz data from the database
     quiz = Quiz.query.filter_by(quiz_id=quiz_id, user_id=session['user_id']).first()
@@ -200,7 +203,7 @@ def start_game(quiz_id):
         delete_quiz_from_redis(current_app.redis_client, quiz.quiz_id)
         return jsonify({'message': 'Quiz desativado com sucesso'}), 200
 
-    # Ativa o quiz
+    # Ativa o quiz no DB
     quiz.is_active = True
     db.session.commit()
     
@@ -228,5 +231,6 @@ def start_game(quiz_id):
 
     # Load quiz data into Redis using redis-py
     load_quiz_to_redis(current_app.redis_client, quiz.quiz_id, quiz_data)
+    
 
     return jsonify({'message': 'Game started', 'quiz_id': str(quiz.quiz_id)}), 200
