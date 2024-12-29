@@ -442,6 +442,70 @@ QUIZ_PLAYERS_KEY_READY = "quiz:{quiz_id}:players:ready_players"
 QUIZ_ANSWERS_KEY = "quiz:{quiz_id}:answers"
 QUIZ_CURRENT_QUESTION_KEY = "quiz:{quiz_id}:current_question"
 
+@app.route('/ranking/<quiz_id>', methods=['GET'])
+def get_rankings(quiz_id):
+    QUIZ_DATA_KEY = f"quiz:{quiz_id}"
+    QUIZ_ID = quiz_id
+    # Dados do quiz
+    quiz_data = json.loads(redis_client.get(QUIZ_DATA_KEY))
+    questions = {q["question_id"]: q for q in quiz_data["questions"]}
+
+    # Rankings
+    print("==== Rankings do Quiz ====\n")
+
+    # Alternativas mais votadas
+    print("Alternativas Mais Votadas:")
+    for question_id, question in questions.items():
+        votes = []
+        for answer in question["answers"]:
+            answer_id = answer["answer_id"]
+            vote_count = redis_client.zscore(f"quiz:{QUIZ_ID}:votes", answer_id) or 0
+            votes.append((answer["nm_answer_option"], vote_count))
+        votes.sort(key=lambda x: -x[1])  # Ordenar por número de votos
+        print(f"Questão {question_id}: {votes[0][0]} ({votes[0][1]} votos)")
+
+    # Questões mais acertadas
+    print("\nQuestões Mais Acertadas:")
+    for question_id in questions.keys():
+        correct_count = redis_client.get(f"quiz:{QUIZ_ID}:correct:{question_id}") or 0
+        print(f"Questão {question_id}: {correct_count} acertos")
+
+    # Questões com mais abstenções
+    print("\nQuestões com Mais Abstenções:")
+    for question_id, question in questions.items():
+        total_responses = redis_client.hlen(f"quiz:{QUIZ_ID}:answers:{question_id}") or 0
+        total_options = len(question["answers"])
+        abstentions = total_options - total_responses
+        print(f"Questão {question_id}: {abstentions} abstenções")
+
+    # Tempo médio de resposta por questão
+    print("\nTempo Médio de Resposta por Questão:")
+    for question_id in questions.keys():
+        times = redis_client.zrange(f"quiz:{QUIZ_ID}:response_time:{question_id}", 0, -1, withscores=True)
+        if times:
+            avg_time = sum(time for _, time in times) / len(times)
+            print(f"Questão {question_id}: {avg_time:.2f} segundos")
+        else:
+            print(f"Questão {question_id}: Sem respostas")
+
+    # Alunos com maior acerto e mais rápidos
+    print("\nRanking Final (Acertos e Velocidade):")
+    users = redis_client.zrange(f"quiz:{QUIZ_ID}:user_scores", 0, -1, withscores=True)
+    for user, score in sorted(users, key=lambda x: (-x[1], x[0])):
+        print(f"Usuário {user}: {score} pontos")
+
+    # Alunos com maior acerto
+    print("\nAlunos com Maior Acerto:")
+    accuracies = redis_client.zrange(f"quiz:{QUIZ_ID}:user_correct", 0, -1, withscores=True)
+    for user, corrects in sorted(accuracies, key=lambda x: -x[1]):
+        print(f"Usuário {user}: {corrects} acertos")
+
+    # Alunos mais rápidos
+    print("\nAlunos Mais Rápidos:")
+    speeds = redis_client.zrange(f"quiz:{QUIZ_ID}:user_speed", 0, -1, withscores=True)
+    for user, time in sorted(speeds, key=lambda x: x[1]):
+        print(f"Usuário {user}: {time:.2f} segundos")
+
 @app.route('/start_quiz/<quiz_id>', methods=['GET', 'POST'])
 def start_quiz(quiz_id):
     """Start the quiz dynamics and broadcast questions in real-time."""

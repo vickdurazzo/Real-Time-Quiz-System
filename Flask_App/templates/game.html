@@ -28,76 +28,87 @@
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Get the quiz_id from the URL, e.g., /quiz/<quiz_id>
-            const quizId = '{{quiz_id}}'; // Make sure to replace this with actual quiz ID logic
-            const username = '{{username}}'
+            // Obter o quiz_id a partir da URL
+            const quizId = '{{quiz_id}}'; // Certifique-se de substituir pelo ID real do quiz
+            const username = '{{username}}';
             console.log(quizId);
-            const socket = io({ query: { quiz_id: quizId,username: username } });
-
-            // Listen for the 'quiz_started' event from the server
+    
+            // Inicializar conexão WebSocket com query parameters
+            const socket = io({ query: { quiz_id: quizId, username: username } });
+    
+            // Escutar o evento 'quiz_started'
             socket.on('quiz_started', function(data) {
                 console.log("Quiz started:", data);
-                
-                //alert(`The Quiz ${data.quiz_id} has started!`);
+                // alert(`The Quiz ${data.quiz_id} has started!`);
             });
-            
-
-
-            // Escutando o evento 'new_question' para receber novas perguntas
-            // Listen for the 'new_question' event
-            
+    
+            // Escutar o evento 'new_question'
             socket.on('new_question', function(data) {
                 console.log("Received question:", data);
-               
-               
-                const questionContainer = document.getElementById('question-container');
-                const questionText = document.getElementById('question-text');
-                const options = document.getElementById('options');
-                const timer = document.getElementById('timer');
-
-                // Update question and options
-                questionText.textContent = data.question.text;
-                options.innerHTML = '';
-                data.question.options.forEach((option, idx) => {
-                    const button = document.createElement('button');
-                    button.textContent = option;
-                    button.onclick = () => submitAnswer(idx);
-                    options.appendChild(button);
+    
+                const $questionContainer = $('#question-container');
+                const $questionText = $('#question-text');
+                const $options = $('#options');
+                const $timer = $('#timer');
+    
+                // Atualizar a pergunta e as opções
+                $questionText.text(data.question.question_text);
+                $options.empty(); // Limpar opções anteriores
+                $.each(data.question.answers, function(idx, option) {
+                    const $button = $('<button>').text(option.answer_text).click(function() {
+                        submitAnswer(option.answer_id);
+                    });
+                    $options.append($button);
                 });
-
-                // Show question container and start timer
-                questionContainer.style.display = 'block';
-                timer.textContent = '20';
-                clearInterval(timerInterval);
-                timerInterval = setInterval(() => {
-                    const timeLeft = parseInt(timer.textContent, 10) - 1;
+    
+                // Exibir o container da pergunta e iniciar o temporizador
+                $questionContainer.show();
+                $timer.text('6');
+                clearInterval(window.timerInterval); // Limpar qualquer intervalo anterior
+                window.timerInterval = setInterval(function() {
+                    const timeLeft = parseInt($timer.text(), 10) - 1;
                     if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
+                        clearInterval(window.timerInterval);
                     } else {
-                        timer.textContent = timeLeft;
+                        $timer.text(timeLeft);
                     }
-                }, 1000);     
+                }, 1000);
             });
-
-            socket.on('quiz_finished', (data) => {
-                console.log(data.message); // Mostra "Quiz finished!" no console
-                alert("The quiz has ended!");
+    
+            // Escutar o evento 'quiz_finished'
+            socket.on('quiz_finished', function(data) {
+                alert("The quiz is finished!");
+                $('#question-container').hide();
             });
-
-
-
-            socket.on('connect_error', (error) => {
+    
+            // Função para enviar resposta
+            function submitAnswer(answerId) {
+                $.ajax({
+                    url: `/quiz/${quizId}/submit_answer`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ username: username, answer_id: answerId }),
+                    success: function(data) {
+                        console.log(data.message);
+                    },
+                    error: function(err) {
+                        console.error(err);
+                    }
+                });
+            }
+    
+            // Tratar erros de conexão WebSocket
+            socket.on('connect_error', function(error) {
                 console.error("WebSocket connection error:", error);
             });
-
-            socket.on('disconnect', () => {
+    
+            // Tratar desconexão do WebSocket
+            socket.on('disconnect', function() {
                 console.warn("Disconnected from WebSocket server");
             });
-
-
-
         });
     </script>
+    
 </head>
 <body>
     <div class="container">
