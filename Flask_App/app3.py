@@ -136,7 +136,7 @@ def delete_quiz_from_redis(redis_client, quiz_id):
         bool: True if the keys were deleted, False if no keys were found.
     """
     # Definir um padrão de chave que abrange todas as chaves relacionadas ao quiz
-    quiz_keys_pattern = f"quiz:{quiz_id}:*"
+    quiz_keys_pattern = f"quiz:{quiz_id}*"
     
     # Use SCAN para encontrar todas as chaves que correspondem ao padrão
     keys_to_delete = redis_client.scan_iter(quiz_keys_pattern)
@@ -149,11 +149,7 @@ def delete_quiz_from_redis(redis_client, quiz_id):
     
     return deleted_count > 0
 
-#################################### CHAVES REDIS ##############################################################
-QUIZ_PLAYERS_KEY = "quiz:{quiz_id}:players"
-QUIZ_PLAYERS_KEY_READY = "quiz:{quiz_id}:players:ready_players"
-QUIZ_ANSWERS_KEY = "quiz:{quiz_id}:answers"
-QUIZ_CURRENT_QUESTION_KEY = "quiz:{quiz_id}:current_question"
+
 
 
 ###########################################################################################################
@@ -468,9 +464,7 @@ def specific_quiz_route(quiz_id):
             db.session.rollback()
             return jsonify({"message": f"Error: {str(e)}"}), 500
 
-
-
-@app.route('/quiz/<quiz_id>/active', methods=['GET']) #ATIVAR O QUIZ
+@app.route('/quiz/<quiz_id>/active', methods=['GET'])
 def active_quiz(quiz_id):
     if not validate_session():
         return redirect(url_for('login'))
@@ -485,75 +479,10 @@ def active_quiz(quiz_id):
         delete_quiz_from_redis(redis_client, quiz.quiz_id)
         return jsonify({'message': 'Quiz desativado com sucesso'}), 200
 
-    
-    quiz_data = format_quiz_data(quiz)
-
-    # Preparar os dados do quiz
-    quiz_info = {
-        'quiz_id': str(quiz_data['quiz_id']),
-        'title': quiz_data['title'],
-        #'is_active': str(quiz_data['is_active'])  # Converte o booleano para string
-    }
-
-    # Adiciona a lista de question_ids ao quiz_info
-    question_ids = [str(q['question_id']) for q in quiz_data['questions']]
-    quiz_info['question_ids'] = json.dumps(question_ids)  # Converte a lista para uma string JSON
-
-    # Armazenar informações gerais do quiz em um Hash no Redis
-    redis_client.hset(f"quiz:{quiz.quiz_id}:info", mapping=quiz_info)
-    
-    # Armazenar cada questão do quiz como um Hash no Redis
-    for q in quiz_data['questions']:
-        
-        question_data = {
-            'question_id': str(q['question_id']),  # Use chave em vez de atributo
-            'question_text': q['question_text'],   # Use chave em vez de atributo
-        }
-
-        # Armazenar alternativas da questão em uma lista
-        alternatives = [
-            {
-                'answer_id': str(a.answer_id),
-                'answer_text': a.answer_text,
-                'is_correct': str(a.is_correct),
-                'nm_answer_option': a.nm_answer_option
-            } for a in Answer.query.filter_by(question_id=q['question_id']).all() 
-        ]
-        
-        # Converte a lista de respostas em uma string JSON
-        question_data['alternatives'] = json.dumps(alternatives)
-        
-        # Obter a alternativa correta diretamente
-        correct_answer = Answer.query.filter_by(question_id=q['question_id'], is_correct=True).first()
-
-        if correct_answer:
-            # Armazenar a alternativa correta em um dicionário
-            question_data['correct_answer'] = json.dumps({
-                'answer_id': str(correct_answer.answer_id),
-                'answer_text': correct_answer.answer_text,
-                'is_correct': str(correct_answer.is_correct),
-                'nm_answer_option': correct_answer.nm_answer_option
-            })
-
-        # Armazenar dados da questão em um Hash no Redis
-        #HASH DE ARMAZENAMENTO INFO DA QUESTAO
-        redis_client.hset(f"quiz:{quiz_data['quiz_id']}:question:{q['question_id']}:info", mapping=question_data)
-        #CHAVE RANKING
-        # Cria os dados para o ranking.
-        ranking_data = {
-            'question_order': 0,
-            'question_text': q['question_text'],
-            'opcao_mais_votada': "",
-            'qtd_acertos': 0,
-            'qtd_abstencoes': 0,
-            'tempo_medio_resposta': 0
-        }
-
-        # Armazena os dados no Redis.
-        redis_client.hset(f"quiz:{quiz_data['quiz_id']}:question:{q['question_id']}:ranking", mapping=ranking_data)
-        
     quiz.is_active = True
     db.session.commit()
+    quiz_data = format_quiz_data(quiz)
+    load_quiz_to_redis(redis_client, quiz.quiz_id, quiz_data)
     return jsonify({'message': 'Quiz Ativado', 'quiz_id': str(quiz.quiz_id)}), 200
 
 ###########################################################################################################
@@ -561,10 +490,76 @@ def active_quiz(quiz_id):
 
 ########################################### Lado do Professor #############################################
 
+QUIZ_PLAYERS_KEY = "quiz:{quiz_id}:players"
+QUIZ_PLAYERS_KEY_READY = "quiz:{quiz_id}:players:ready_players"
+QUIZ_ANSWERS_KEY = "quiz:{quiz_id}:answers"
+QUIZ_CURRENT_QUESTION_KEY = "quiz:{quiz_id}:current_question"
 
+@app.route('/ranking/<quiz_id>', methods=['GET'])
+def get_rankings(quiz_id):
+    QUIZ_DATA_KEY = f"quiz:{quiz_id}"
+    QUIZ_ID = quiz_id
+    # Dados do quiz
+    quiz_data = json.loads(redis_client.get(QUIZ_DATA_KEY))
+    questions = {q["question_id"]: q for q in quiz_data["questions"]}
 
+    # Rankings
+    print("==== Rankings do Quiz ====\n")
 
-@app.route('/start_quiz/<quiz_id>', methods=['GET', 'POST'])  # INICIAR O QUIZ
+    # Alternativas mais votadas
+    print("Alternativas Mais Votadas:")
+    for question_id, question in questions.items():
+        votes = []
+        for answer in question["answers"]:
+            answer_id = answer["answer_id"]
+            vote_count = redis_client.zscore(f"quiz:{QUIZ_ID}:votes", answer_id) or 0
+            votes.append((answer["nm_answer_option"], vote_count))
+        votes.sort(key=lambda x: -x[1])  # Ordenar por número de votos
+        print(f"Questão {question_id}: {votes[0][0]} ({votes[0][1]} votos)")
+
+    # Questões mais acertadas
+    print("\nQuestões Mais Acertadas:")
+    for question_id in questions.keys():
+        correct_count = redis_client.get(f"quiz:{QUIZ_ID}:correct:{question_id}") or 0
+        print(f"Questão {question_id}: {correct_count} acertos")
+
+    # Questões com mais abstenções
+    print("\nQuestões com Mais Abstenções:")
+    for question_id, question in questions.items():
+        total_responses = redis_client.hlen(f"quiz:{QUIZ_ID}:answers:{question_id}") or 0
+        total_options = len(question["answers"])
+        abstentions = total_options - total_responses
+        print(f"Questão {question_id}: {abstentions} abstenções")
+
+    # Tempo médio de resposta por questão
+    print("\nTempo Médio de Resposta por Questão:")
+    for question_id in questions.keys():
+        times = redis_client.zrange(f"quiz:{QUIZ_ID}:response_time:{question_id}", 0, -1, withscores=True)
+        if times:
+            avg_time = sum(time for _, time in times) / len(times)
+            print(f"Questão {question_id}: {avg_time:.2f} segundos")
+        else:
+            print(f"Questão {question_id}: Sem respostas")
+
+    # Alunos com maior acerto e mais rápidos
+    print("\nRanking Final (Acertos e Velocidade):")
+    users = redis_client.zrange(f"quiz:{QUIZ_ID}:user_scores", 0, -1, withscores=True)
+    for user, score in sorted(users, key=lambda x: (-x[1], x[0])):
+        print(f"Usuário {user}: {score} pontos")
+
+    # Alunos com maior acerto
+    print("\nAlunos com Maior Acerto:")
+    accuracies = redis_client.zrange(f"quiz:{QUIZ_ID}:user_correct", 0, -1, withscores=True)
+    for user, corrects in sorted(accuracies, key=lambda x: -x[1]):
+        print(f"Usuário {user}: {corrects} acertos")
+
+    # Alunos mais rápidos
+    print("\nAlunos Mais Rápidos:")
+    speeds = redis_client.zrange(f"quiz:{QUIZ_ID}:user_speed", 0, -1, withscores=True)
+    for user, time in sorted(speeds, key=lambda x: x[1]):
+        print(f"Usuário {user}: {time:.2f} segundos")
+
+@app.route('/start_quiz/<quiz_id>', methods=['GET', 'POST'])
 def start_quiz(quiz_id):
     """Start the quiz dynamics and broadcast questions in real-time."""
     
@@ -572,108 +567,73 @@ def start_quiz(quiz_id):
         game_started = redis_client.get(f"quiz:{quiz_id}:started")
         return jsonify({"message": game_started.decode('utf-8') if game_started else "0"})
     
-    if request.method == 'POST':
-        # Obtém as informações gerais do quiz do Redis usando o ID do quiz.
-        quiz_info = redis_client.hgetall(f"quiz:{quiz_id}:info")
+    if request.method == 'POST':  
+        # Obtém os dados do quiz armazenados no Redis usando o ID do quiz.
+        quiz_data = redis_client.get(f"quiz:{quiz_id}")
+    
+    # Verifica se os dados do quiz existem no Redis. Caso contrário, retorna um erro 404.
+    if not quiz_data:
+        return jsonify({"error": "Quiz data not found"}), 404
+    
+    # Carrega os dados do quiz do formato JSON armazenado no Redis para um dicionário Python.
+    quiz_data = json.loads(quiz_data)
+    
+    # Obtém a lista de perguntas do quiz. Se nenhuma pergunta estiver disponível, retorna um erro 400.
+    questions = quiz_data.get('questions', [])
+    if not questions:
+        return jsonify({"error": "No questions available in the quiz"}), 400
+    
+    # Configura o Redis para rastrear o estado do quiz.
+    # Define a questão atual como a primeira (índice 0).
+    redis_client.set(QUIZ_CURRENT_QUESTION_KEY.format(quiz_id=quiz_id), 0)
+    
+    # Marca o quiz como iniciado no Redis.
+    redis_client.set(f"quiz:{quiz_id}:started", 1)
 
-        # Verifica se os dados do quiz existem no Redis. Caso contrário, retorna um erro 404.
-        if not quiz_info:
-            return jsonify({"error": "Quiz data not found"}), 404
+    # Emite um sinal via WebSocket para notificar todos os clientes conectados que o quiz foi iniciado.
+    socketio.emit('quiz_started', {'quiz_id': quiz_id}, room=quiz_id)
+    print(f"Async mode: {socketio.async_mode}")
 
-        # Converte os dados do quiz para um formato legível (dict)
-        quiz_info = {key: value for key, value in quiz_info.items()}
-        print(quiz_info)
-
-        # Obtém o título e o estado de atividade do quiz
-        title = quiz_info.get('title')
-        is_active = quiz_info.get('is_active')
-
-        # Busca as perguntas do quiz no Redis
-        questions = []
-
-        # Recupera a lista de question_ids do Redis
-        question_ids = json.loads(redis_client.hget(f"quiz:{quiz_id}:info", 'question_ids'))
-
-        # Configura o Redis para rastrear o estado do quiz.
-        # Define a questão atual como a primeira (índice 0).
-        redis_client.set(QUIZ_CURRENT_QUESTION_KEY.format(quiz_id=quiz_id), 0)
-
-        # Marca o quiz como iniciado no Redis.
-        redis_client.set(f"quiz:{quiz_id}:started", 1)
-        # Obtém a quantidade de registros
-        num_players = redis_client.scard(f"quiz:{quiz_id}:players")
-        # Emite um sinal via WebSocket para notificar todos os clientes conectados que o quiz foi iniciado.
-        socketio.emit('quiz_started', {'quiz_id': quiz_id}, room=quiz_id)
-        #print(f"Async mode: {socketio.async_mode}")
-
-        # Define uma função para enviar perguntas aos clientes conectados de forma sequencial.
-        def send_questions():
-            question_index = 0  # Começa com a primeira pergunta.
-            while question_index < len(question_ids):  # Continua até que todas as perguntas sejam enviadas.
-                try:
-                    # Define o valor do campo
-                    redis_client.hset(f"quiz:{quiz_id}:question:{question_ids[question_index]}:ranking", "qtd_abstencoes", num_players)
-                    redis_client.hset(f"quiz:{quiz_id}:question:{question_ids[question_index]}:ranking", "question_order", question_index + 1)
-                    # Obtém a pergunta atual com base no índice.
-                    question_data = redis_client.hgetall(f"quiz:{quiz_id}:question:{question_ids[question_index]}:info")
-                    question = {key: value for key, value in question_data.items()}
-                    # Emite a pergunta para todos os clientes conectados ao WebSocket na sala correspondente ao quiz.
-                    socketio.emit('new_question', {'question': question}, room=quiz_id)
-                    #print(f"Sent question {question_index + 1}: {question}")
-                    print(f"Sent question {question_index + 1}")
-
-                    # Atualiza no Redis o índice da próxima pergunta.
-                    redis_client.set(QUIZ_CURRENT_QUESTION_KEY.format(quiz_id=quiz_id), question_index + 1)
-                    
-                    # Aguarda 20 segundos antes de enviar a próxima pergunta, dando tempo para os participantes responderem.
-                    socketio.sleep(6)
-                    
-                    process_question_ranking(f"quiz:{quiz_id}:question:{question_ids[question_index]}")
-                
-                    
-                    # Incrementa o índice para enviar a próxima pergunta no próximo loop.
-                    question_index += 1
-                    
-                except Exception as e:
-                    # Captura e registra erros que ocorram no loop de envio de perguntas.
-                    print(f"Error in send_questions loop: {e}")
-                    break
-            
-            # Após o envio de todas as perguntas, emite um sinal indicando que o quiz foi finalizado.
+    # Define uma função para enviar perguntas aos clientes conectados de forma sequencial.
+    def send_questions():
+        question_index = 0  # Começa com a primeira pergunta.
+        while question_index < len(questions):  # Continua até que todas as perguntas sejam enviadas.
             try:
-                socketio.emit('quiz_finished', {'quiz_id': quiz_id, 'message': 'Quiz finished!'}, room=quiz_id)
-                print("Quiz finished!")
+                # Obtém a pergunta atual com base no índice.
+                question = questions[question_index]
+                
+                # Emite a pergunta para todos os clientes conectados ao WebSocket na sala correspondente ao quiz.
+                socketio.emit('new_question', {'question': question}, room=quiz_id)
+                print(f"Sent question {question_index + 1}: {question}")
 
+                # Atualiza no Redis o índice da próxima pergunta.
+                redis_client.set(QUIZ_CURRENT_QUESTION_KEY.format(quiz_id=quiz_id), question_index + 1)
+
+                # Aguarda 20 segundos antes de enviar a próxima pergunta, dando tempo para os participantes responderem.
+                socketio.sleep(20)
+                
+                # Incrementa o índice para enviar a próxima pergunta no próximo loop.
+                question_index += 1
             except Exception as e:
-                # Captura e registra erros ao tentar emitir o evento de quiz finalizado.
-                print(f"Error sending quiz_finished event: {e}")
-
-        # Inicia a função `send_questions` como uma tarefa em segundo plano usando o WebSocket.
-        socketio.start_background_task(send_questions)
-
+                # Captura e registra erros que ocorram no loop de envio de perguntas.
+                print(f"Error in send_questions loop: {e}")
+                break
         
-        # Retorna uma resposta HTTP para confirmar que o quiz foi iniciado e que as perguntas estão sendo enviadas.
-        return jsonify({"message": "Quiz started and questions are being sent"}), 200
+        # Após o envio de todas as perguntas, emite um sinal indicando que o quiz foi finalizado.
+        try:
+            socketio.emit('quiz_finished', {'quiz_id': quiz_id, 'message': 'Quiz finished!'}, room=quiz_id)
+            print("Quiz finished!")
+        except Exception as e:
+            # Captura e registra erros ao tentar emitir o evento de quiz finalizado.
+            print(f"Error sending quiz_finished event: {e}")
+
+    # Inicia a função `send_questions` como uma tarefa em segundo plano usando o WebSocket.
+    socketio.start_background_task(send_questions)
+
+    # Retorna uma resposta HTTP para confirmar que o quiz foi iniciado e que as perguntas estão sendo enviadas.
+    return jsonify({"message": "Quiz started and questions are being sent"}), 200
 
 
-def process_question_ranking(current_question_key):
-    try:
-        time.sleep(4)  # Aguarda 25 segundos antes de processar os dados.
-        # Obtém a opção mais votada.
-        top_option = redis_client.zrevrange(f"{current_question_key}:votes", 0, 0, withscores=True)
-        redis_client.hset(f"{current_question_key}:ranking", "opcao_mais_votada", top_option[0][0])
-        #print(f"top_option : {top_option}")
-        
-        # Calcula o tempo médio de resposta.
-        response_times = redis_client.zrange(f"{current_question_key}:response_time", 0, -1, withscores=True)
-        total_time = sum(time for _, time in response_times)
-        num_users = len(response_times)
-        average_time = round(total_time / num_users, 2) if num_users > 0 else 0
-        redis_client.hset(f"{current_question_key}:ranking", "tempo_medio_resposta", average_time)
-        print(f"average_time : {average_time}")
-
-    except Exception as e:
-        print(f"Error in process_question_ranking: {e}")
 
 
 
@@ -700,68 +660,8 @@ def handle_disconnect():
         print(f'Cliente {username} desconectado do quiz: {quiz_id}')
         print("#################################################")
 
-@app.route('/<quiz_id>/results', methods=['GET'])  # INICIAR O QUIZ
-def ranking(quiz_id):
-    # Marca o quiz como iniciado no Redis.
-    redis_client.set(f"quiz:{quiz_id}:started", 0)
-    quiz_global_key = f"quiz:{quiz_id}:global:correct_responses"
-    
-    all_data = redis_client.hgetall(quiz_global_key)
-    # Processar os dados em uma lista de dicionários
-    users_data = {}
-    for key, value in all_data.items():
-        user_id, attribute = key.split(":")
-        if user_id not in users_data:
-            users_data[user_id] = {"user_id": user_id, "response_time": 0, "correct_responses": 0}
-        if attribute == "response_time":
-            users_data[user_id]["response_time"] = float(value)
-        elif attribute == "correct_responses":
-            users_data[user_id]["correct_responses"] = int(value)
-    users_list = users_data.values()
-    # Capturar o alunos que obtiveram a maior pontuação e em menor tempo
-    ranked_students = sorted(
-        users_list,
-        key=lambda x: (-x["correct_responses"], x["response_time"])
-    )
-    # Adiciona o ranking à lista
-    ranked_students_with_positions = [
-        {**student, "rank": index + 1} for index, student in enumerate(ranked_students)
-    ]
-    # Encontra o maior número de respostas corretas
-    max_correct_responses = max(item['correct_responses'] for item in users_list)
-    # Filtra os alunos com o maior número de respostas corretas
-    top_students = [item for item in users_list if item['correct_responses'] == max_correct_responses]
-    
-    quiz_global_key = f"quiz:{quiz_id}:global:responses_time"
-    # Obter o ranking dos alunos com os menores tempos de resposta (menor é melhor)
-    top_fastest = redis_client.zrange(quiz_global_key, 0, -1, withscores=True)
 
-    # Inicializando a lista para armazenar o ranking
-    ranked_fastest_users = []
 
-    # Iterar sobre o resultado e adicionar o número de ordenação
-    for i, (member, score) in enumerate(top_fastest, 1):  # A enumeração começa em 1 para refletir o ranking correto
-        print(member)
-        print(score)
-        ranked_fastest_users.append({"rank": i, "user_id": member, "response_time": round(score,2)})
-            
-    
-    # Recupera a lista de question_ids do Redis
-    question_ids = json.loads(redis_client.hget(f"quiz:{quiz_id}:info", 'question_ids')) 
-    question_rank = []
-    for q in question_ids:
-        data = redis_client.hgetall(f"quiz:{quiz_id}:question:{q}:ranking")
-        json_data = json.dumps(data, indent=4)
-        question_rank.append(json.loads(json_data))
-    
-    return jsonify({"students_ranking": ranked_students_with_positions, 
-                    "top_students_correct_answer": top_students,
-                    "fastest_students":ranked_fastest_users,
-                    "question_ranking": question_rank
-                })
-                    
-        
-        
 
 
 ########################################### Lado do Aluno #############################################
@@ -784,7 +684,6 @@ def join_quiz(quiz_id):
         redis_client.sadd(players_key, username)
         session['username'] = username  # Store username in session
         
-        
         # Returning a JSON response that contains the URL for game.html
         return jsonify({"message": "Successfully joined the quiz"}),200
     
@@ -795,89 +694,19 @@ def game(quiz_id,username):
 @app.route('/quiz/<quiz_id>/submit_answer', methods=['POST'])
 def submit_answer(quiz_id):
     """Submit an answer for the current question."""
-    try:
-        username = request.json.get('username')
-        option = request.json.get('option')  # Aqui o option é um objeto
-        question_id = request.json.get('question_id')
-        time_taken = request.json.get('time_taken')
-        
-        if not username or not option or not question_id:
-            return jsonify({"error": "Username, option, and question_id are required"}), 400
-        
-        # Garantir que o `option` seja um dicionário
-        if isinstance(option, str):
-            try:
-                option = json.loads(option)  # Converter string para JSON
-            except json.JSONDecodeError:
-                return jsonify({"error": "Invalid option format"}), 400
+    username = request.json.get('username')
+    answer_id = request.json.get('answer_id')
+    if not username or not answer_id:
+        return jsonify({"error": "Username and answer_id are required"}), 400
 
-        # Validar os campos do objeto `option`
-        nm_answer_option = option.get('nm_answer_option')
-        is_correct = option.get('is_correct')
-
-        if not nm_answer_option or is_correct is None:
-            return jsonify({"error": "Option must include nm_answer_option and is_correct"}), 400
-
-        # Definir as chaves no Redis
-        current_question_key = f"quiz:{quiz_id}:question:{question_id}"
-        votes_key = f"{current_question_key}:votes"
-        voters_key = f"{current_question_key}:voters"
-        responses_key = f"quiz:{quiz_id}:responses"
-        response_time_key = f"{current_question_key}:response_time"
-        correct_responses_key = f"{current_question_key}:correct_responses"
-        global_correct_responses_key = f"quiz:{quiz_id}:global:correct_responses"
-        global_responses_time_key = f"quiz:{quiz_id}:global:responses_time"
-
-        
-
-        # Verifica se o usuário já votou
-        if redis_client.sismember(voters_key, username):
-            return jsonify({"error": "User has already voted"}), 400
-
-        # Registra o voto no Hash de respostas
-        redis_client.hset(responses_key, f"{question_id}:{username}", json.dumps({
-            "nm_answer_option": nm_answer_option,
-            "is_correct": is_correct,
-            "timestamp": time.time()
-        }))
-
-        # Verifica se a resposta do usuário está correta
-        #if is_correct == "True":  # Verifica se a resposta enviada é a correta
-        #   redis_client.sadd(correct_responses_key, username)  # Adiciona o usuário à lista de
-
-        # Incrementa o número de votos para a opção
-        redis_client.zincrby(votes_key,1.0,nm_answer_option)
-
-        # Registra o tempo de resposta no Sorted Set
-        # Ensure time_taken is a valid number before using it
-        if time_taken is not None and isinstance(time_taken, (int, float)):
-            redis_client.zadd(response_time_key, {username: time_taken})
-            # Incrementa o número de respostas no Sorted Set
-            redis_client.zincrby(global_responses_time_key,time_taken,username)
-            # Verifica se a resposta do usuário está correta
-            if is_correct == "True":  # Verifica se a resposta enviada é a correta
-                redis_client.zadd(correct_responses_key, {username: time_taken})  # Adiciona o usuário à lista de
-                # Incrementar o tempo de resposta
-                redis_client.hincrbyfloat(global_correct_responses_key, f"{username}:response_time", time_taken)
-                # Incrementar o número de respostas corretas
-                redis_client.hincrby(global_correct_responses_key, f"{username}:correct_responses", 1)
-                #Incrementar o número de respostas corretas no ranking
-                redis_client.hincrby(f"{current_question_key}:ranking", "qtd_acertos", 1)
-                
-        else:
-            print(f"Invalid time_taken value: {time_taken}. Expected a number.")
-
-        # Marca o usuário como votante
-        redis_client.sadd(voters_key, username)
-        #Decrementa o número de abstenções no ranking
-        redis_client.hincrby(f"{current_question_key}:ranking", "qtd_abstencoes", -1)
-
-        return jsonify({"message": "Answer submitted successfully"}), 200
-
-    except Exception as e:
-        # Log do erro para depuração
-        print(f"Error in submit_answer: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+    
+    current_question_idx = int(redis_client.get(QUIZ_CURRENT_QUESTION_KEY.format(quiz_id=quiz_id)) or 0)
+    answers_key = QUIZ_ANSWERS_KEY.format(quiz_id=quiz_id)
+    redis_client.hset(answers_key, f"{current_question_idx}:{username}", json.dumps({
+        "answer_id": answer_id,
+        "timestamp": time.time()
+    }))
+    return jsonify({"message": "Answer submitted"}), 200
     
 
 
