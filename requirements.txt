@@ -1,0 +1,7 @@
+# Python dependencies
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-SocketIO
+redis
+unittest

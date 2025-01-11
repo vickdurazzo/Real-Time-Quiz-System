@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">QuizApp</a>
+            <button class="btn btn-outline-light ms-auto" id="logoutButton">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Bem vindo à Plataforma!</h1>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Seus Quizzes</h2>
+            <button class="btn btn-primary" id="createQuizButton">Create New Quiz</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Quiz Name</th>
+                        <th>Actions</th>
+                        <th>Link para entrada</th>
+                    </tr>
+                </thead>
+                <tbody id="quizList">
+                    {% if quizzes %}
+                        {% for quiz in quizzes %}
+                        <tr data-quiz-id="{{ quiz.quiz_id }}">
+                            <td>{{ loop.index }}</td>
+                            <td>{{ quiz.title }}</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm editQuizButton">Editar</button>
+                                <button class="btn btn-success btn-sm actionButton">Ativar</button>
+                                <button class="btn btn-info btn-sm gameButton" disabled>Iniciar</button>
+                                <button class="btn btn-danger btn-sm deleteQuizButton">Deletar</button>
+                            </td>
+                            <td class="linkCell"></td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="4">No quizzes created yet.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light text-center py-3 mt-4">
+        &copy; 2024 QuizApp. All rights reserved.
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript with jQuery -->
+    <script>
+        $(document).ready(function() {
+            $('#createQuizButton').on('click', function(event) {
+                event.preventDefault();
+                const createQuizUrl = "/quiz";
+
+                $.ajax({
+                    url: createQuizUrl,
+                    method: "GET",
+                    dataType: "html",
+                    success: function(data) {
+                        console.log(data.message)
+                        window.location.href = createQuizUrl;
+                    },
+                    error: function(xhr) {
+                        alert(`Error: ${xhr.responseJSON.message}`);
+                    }
+                });
+            });
+
+            $('#quizList').on('click', '.editQuizButton', function() {
+                const quizId = $(this).closest('tr').data('quiz-id');
+                window.location.href = `/quiz/${quizId}`;
+            });
+
+            $('#quizList').on('click', '.actionButton', function() {
+                const row = $(this).closest('tr');
+                const quizId = row.data('quiz-id');
+                const isActive = $(this).hasClass('btn-danger');
+                const action = isActive ? "desativar" : "ativar";
+
+                if (confirm(`Tem certeza que quer ${action} o quiz ID: ${quizId}?`)) {
+                    const endpoint = `/quiz/${quizId}/active`;
+
+                    $.ajax({
+                        url: endpoint,
+                        method: "GET",
+                        dataType: "json",
+                        success: function() {
+                            const actionButton = row.find('.actionButton');
+                            const linkCell = row.find('.linkCell');
+                            const startButton = row.find('.gameButton');
+
+                            if (isActive) {
+                                linkCell.empty();
+                                actionButton.text('Ativar').removeClass('btn-danger').addClass('btn-success');
+                                startButton.prop('disabled', true);
+                            } else {
+                                const quizLink = `${window.location.origin}/quiz/${quizId}/join`;
+                                linkCell.html(`<a href="${quizLink}" target="_blank">${quizLink}</a>`);
+                                actionButton.text('Desativar').removeClass('btn-success').addClass('btn-danger');
+                                startButton.prop('disabled', false);
+                            }
+
+                            alert(`Quiz ID: ${quizId} ${isActive ? "desativado" : "ativado"} com sucesso.`);
+                        },
+                        error: function(xhr) {
+                            alert(`Erro: ${xhr.responseJSON.message}`);
+                        }
+                    });
+                }
+            });
+
+            $('#quizList').on('click', '.gameButton', function() {
+                const quizId = $(this).closest('tr').data('quiz-id');
+                const apiUrl = `/start_quiz/${quizId}`;
+
+                $.ajax({
+                    url: apiUrl,
+                    method: "POST",
+                    dataType: "json",
+                    success: function(data) {
+                        console.log(data.message);
+                    },
+                    error: function(xhr) {
+                        alert(`Erro ao iniciar o quiz: ${xhr.responseJSON.message}`);
+                    }
+                });
+            });
+
+            $('#quizList').on('click', '.deleteQuizButton', function() {
+                const quizId = $(this).closest('tr').data('quiz-id');
+
+                if (confirm(`Are you sure you want to delete quiz ID: ${quizId}?`)) {
+                    $.ajax({
+                        url: `/quiz/${quizId}`,
+                        method: "DELETE",
+                        dataType: "json",
+                        success: function(result) {
+                            alert(result.message);
+                            window.location.href = "/";
+                        },
+                        error: function(xhr) {
+                            alert(`Error: ${xhr.responseJSON.message}`);
+                        }
+                    });
+                }
+            });
+
+            $('#logoutButton').on('click', function(event) {
+                event.preventDefault();
+                const logoutUrl = "/logout";
+
+                $.ajax({
+                    url: logoutUrl,
+                    method: "POST",
+                    dataType: "json",
+                    success: function() {
+                        window.location.href = "/login";
+                    },
+                    error: function(xhr) {
+                        alert(`Error: ${xhr.responseJSON.message}`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
