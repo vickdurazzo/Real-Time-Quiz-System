@@ -39,12 +39,13 @@ def game(quiz_id,username):
 def submit_answer(quiz_id):
     """Submit an answer for the current question."""
     try:
+        print("Resposta enviada")
         return submit_player_answer(quiz_id, request.json)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-@game_bp.route('/<quiz_id>/results', methods=['GET'])  # INICIAR O QUIZ
+@game_bp.route('/<quiz_id>/results', methods=['GET'])  
 def ranking(quiz_id):
     """Return the ranking of players in the quiz."""
     try:

@@ -121,6 +121,7 @@
             function submitAnswer(option, questionId) {
                 // Capture the timestamp when the answer is submitted
                 const answerSubmittedTime = Date.now();
+                console.log(answerSubmittedTime)
                 
                 // Calculate the time difference in milliseconds
                 const timeDifference = answerSubmittedTime - questionReceivedTime;
@@ -146,21 +147,7 @@
                 });
             }
 
-                // Atualize a função submitAnswer para receber o question_id
-                function submitAnswer(option, questionId) {
-                    $.ajax({
-                        url: `/quiz/${quizId}/submit_answer`,
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ username: username, option: option, question_id: questionId,time: Date().now() }), // Passa o question_id também
-                        success: function(data) {
-                            console.log(data.message);
-                        },
-                        error: function(err) {
-                            console.error(err);
-                        }
-                    });
-                }
+                
 
     
            
