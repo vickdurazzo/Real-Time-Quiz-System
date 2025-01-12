@@ -22,7 +22,10 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Seus Quizzes</h2>
-            <button class="btn btn-primary" id="createQuizButton">Create New Quiz</button>
+            <div>
+                <button class="btn btn-primary" id="createQuizButton">Create New Quiz</button>
+            </div>
+            
         </div>
 
         <div class="table-responsive">
@@ -43,9 +46,9 @@
                             <td>{{ quiz.title }}</td>
                             <td>
                                 <button class="btn btn-warning btn-sm editQuizButton">Editar</button>
-                                <button class="btn btn-success btn-sm actionButton">Ativar</button>
-                                <button class="btn btn-info btn-sm gameButton" disabled>Iniciar</button>
-                                <button class="btn btn-danger btn-sm deleteQuizButton">Deletar</button>
+                                <button class="btn btn-success btn-sm actionButton">Novo Jogo</button>
+                                <button class="btn btn-info btn-sm gameButton">Iniciar Jogo</button>
+                                <button class="btn btn-danger btn-sm deleteQuizButton">Deletar Quiz</button>
                             </td>
                             <td class="linkCell"></td>
                         </tr>
@@ -58,6 +61,10 @@
                 </tbody>
             </table>
         </div>
+        <div>
+            <button class="btn btn-danger" id="StopQuizButton">Parar jogos em andamento</button>
+        </div>
+        
     </div>
 
     <footer class="bg-dark text-light text-center py-3 mt-4">
@@ -96,10 +103,10 @@
             $('#quizList').on('click', '.actionButton', function() {
                 const row = $(this).closest('tr');
                 const quizId = row.data('quiz-id');
-                const isActive = $(this).hasClass('btn-danger');
-                const action = isActive ? "desativar" : "ativar";
+                //const isActive = $(this).hasClass('btn-danger');
+                //const action = isActive ? "desativar" : "ativar";
 
-                if (confirm(`Tem certeza que quer ${action} o quiz ID: ${quizId}?`)) {
+                if (confirm(`Tem certeza que quer começar um novo jogo ?`)) {
                     const endpoint = `/quiz/${quizId}/active`;
 
                     $.ajax({
@@ -109,23 +116,21 @@
                         success: function() {
                             const actionButton = row.find('.actionButton');
                             const linkCell = row.find('.linkCell');
-                            const startButton = row.find('.gameButton');
-
-                            if (isActive) {
-                                linkCell.empty();
-                                actionButton.text('Ativar').removeClass('btn-danger').addClass('btn-success');
-                                startButton.prop('disabled', true);
-                            } else {
-                                const quizLink = `${window.location.origin}/quiz/${quizId}/join`;
-                                linkCell.html(`<a href="${quizLink}" target="_blank">${quizLink}</a>`);
-                                actionButton.text('Desativar').removeClass('btn-success').addClass('btn-danger');
-                                startButton.prop('disabled', false);
-                            }
-
-                            alert(`Quiz ID: ${quizId} ${isActive ? "desativado" : "ativado"} com sucesso.`);
+                            const quizLink = `${window.location.origin}/quiz/${quizId}/join`;
+                            linkCell.html(`<a href="${quizLink}" target="_blank" class="link_quiz_ativo">${quizLink}</a>`);
                         },
                         error: function(xhr) {
-                            alert(`Erro: ${xhr.responseJSON.message}`);
+                            if (xhr.status === 401) {
+                                alert(`${xhr.responseJSON.message}`);
+                                const linkCell = row.find('.linkCell');
+                                const quizLink = `${window.location.origin}/quiz/${quizId}/join`;
+                                linkCell.html(`<a href="${quizLink}" target="_blank" class="link_quiz_ativo">${quizLink}</a>`);
+                            }else if (xhr.status === 405){
+                                alert(`${xhr.responseJSON.message}`);
+                            }else{
+                                alert(`Erro: ${xhr.responseJSON.message}`);
+                            }
+                            
                         }
                     });
                 }
@@ -135,23 +140,27 @@
                 const quizId = $(this).closest('tr').data('quiz-id');
                 const apiUrl = `/start_quiz/${quizId}`;
 
-                $.ajax({
-                    url: apiUrl,
-                    method: "POST",
-                    dataType: "json",
-                    success: function(data) {
-                        console.log(data.message);
-                    },
-                    error: function(xhr) {
-                        alert(`Erro ao iniciar o quiz: ${xhr.responseJSON.message}`);
-                    }
-                });
+                if (confirm(`Esta certo que quer iniciar o jogo?`)){
+                        $.ajax({
+                        url: apiUrl,
+                        method: "POST",
+                        dataType: "json",
+                        success: function(data) {
+                            alert(data.message);
+                        },
+                        error: function(xhr) {
+                            alert(`Erro ao iniciar o quiz: ${xhr.responseJSON.message}`);
+                        }
+                    });
+
+                }
             });
+
 
             $('#quizList').on('click', '.deleteQuizButton', function() {
                 const quizId = $(this).closest('tr').data('quiz-id');
 
-                if (confirm(`Are you sure you want to delete quiz ID: ${quizId}?`)) {
+                if (confirm(`Esta certo que quer deletar este quiz ?`)) {
                     $.ajax({
                         url: `/quiz/${quizId}`,
                         method: "DELETE",
@@ -183,6 +192,31 @@
                     }
                 });
             });
+
+            $('#StopQuizButton').on('click', function(event) {
+    event.preventDefault();
+
+    const stopQuizUrl = "/stop-quiz";
+
+    if (confirm(`Está certo que quer parar o jogo em andamento?`)) {
+        $.ajax({
+            url: stopQuizUrl,
+            method: "POST",
+            dataType: "json",
+            success: function(result) {
+                alert(result.message);
+
+                // Limpa o conteúdo das células com classe 'linkCell'
+                $('td.linkCell').empty(); // Garante que todas as células com essa classe sejam esvaziadas
+            },
+            error: function(xhr) {
+                alert(`Error: ${xhr.responseJSON.message}`);
+            }
+        });
+    }
+});
+
+
         });
     </script>
 </body>

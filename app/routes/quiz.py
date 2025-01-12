@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify,session,request,render_template
 
 from app.models import Quiz,Question,Answer,db
-from app.services.redis_service import delete_quiz_from_redis, redis_active_quiz
+from app.services.redis_service import delete_quiz_from_redis, redis_stop_quiz,redis_active_quiz,check_quiz_session,check_user_quiz_session
 
 
 
@@ -206,6 +206,7 @@ def specific_quiz_route(quiz_id):
 
             db.session.delete(quiz)
             db.session.commit()
+            delete_quiz_from_redis(quiz_id)
             return jsonify({"message": "Quiz deleted successfully!"}), 200
 
         except Exception as e:
@@ -218,18 +219,35 @@ def active_quiz(quiz_id):
     quiz = get_quiz_by_id(quiz_id)
     if not quiz:
         return handle_error("Quiz not found or not authorized to start", 404)
-
-    if quiz.is_active:
-        quiz.is_active = False
-        db.session.commit()
-        delete_quiz_from_redis(quiz.quiz_id)
-        return jsonify({'message': 'Quiz desativado com sucesso'}), 200
+    
+    if check_quiz_session(quiz_id):
+        return jsonify({'message': 'Quiz com um jogo já em andamento'}),401
+    
+    if check_user_quiz_session(session['user_id']):
+        return jsonify({'message': 'Já existe um quiz seu em andamento'}),405
+   
 
     quiz_data = format_quiz_data(quiz)
     
     
-    redis_active_quiz(quiz_id,quiz_data)
+    redis_active_quiz(quiz_id,quiz_data,session['user_id'])
        
-    quiz.is_active = True
-    db.session.commit()
+    #quiz.is_active = True
+    #db.session.commit()
     return jsonify({'message': 'Quiz Ativado', 'quiz_id': str(quiz.quiz_id)}), 200
+
+@quiz_bp.route('/stop-quiz',methods=['POST'])
+def stop_quiz():
+    if check_user_quiz_session(session['user_id']):
+        try:
+            redis_stop_quiz(session['user_id'])
+            return jsonify({"message":"Quiz desativado, pronto para novo jogo"}),200
+        except Exception as e:
+            return jsonify({"message":f"Error: {str(e)}"}), 500
+    else :
+        return jsonify({"message":"Nenhum jogo ativo no momento"}),500
+            
+       
+            
+    
+    

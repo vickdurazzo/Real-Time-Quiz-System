@@ -30,7 +30,22 @@ def get_quiz_from_redis( quiz_id):
         return json.loads(quiz_data)
     return None
 
-def delete_quiz_from_redis( quiz_id):
+def check_quiz_session(quiz_id):
+    redis_client = get_redis_connection()
+    # Tenta obter o valor associado à chave no Redis
+    quiz_session_id = redis_client.get(f"quiz:{quiz_id}:current_quiz_session_id")
+    
+    # Retorna True se o valor existir, caso contrário, False
+    return quiz_session_id is not None
+
+def check_user_quiz_session(user_id):
+    redis_client = get_redis_connection()
+    user_quiz_id = redis_client.get(f"quiz:{user_id}")
+    # Retorna True se o valor existir, caso contrário, False
+    return user_quiz_id is not None
+
+
+def delete_quiz_from_redis(quiz_id):
     """
     Delete all quiz-related data from Redis.
 
@@ -56,17 +71,36 @@ def delete_quiz_from_redis( quiz_id):
     
     return deleted_count > 0
 
-def redis_active_quiz(quiz_id,quiz_data):
+
+def redis_stop_quiz(user_id):
+    redis_client = get_redis_connection()
+    quiz_id = redis_client.get(f"quiz:{user_id}")
+    quiz_id = quiz_id.decode('utf-8')
+    #DELETAR AS CHAVES DE CONTROLE
+    redis_client.delete(f"quiz:{quiz_id}:current_quiz_session_id")
+    redis_client.delete(f"quiz:{user_id}")
+    
+    
+    
+    
+
+
+def redis_active_quiz(quiz_id,quiz_data,user_id):
     redis_client = get_redis_connection()
     
     quiz_session_id = int(time.time())
     redis_client.set(f"quiz:{quiz_id}:current_quiz_session_id", quiz_session_id )
+    
+    redis_client.set(f"quiz:{user_id}",quiz_id)
+    
+    
     
     # Adiciona a lista de question_ids ao quiz_info
     question_ids = [str(q['question_id']) for q in quiz_data['questions']]
     # Preparar os dados do quiz
     quiz_info = {
         'quiz_id': str(quiz_data['quiz_id']),
+        'quiz_owner' : str(user_id),
         'title': quiz_data['title'],
         'question_ids' : json.dumps(question_ids)
     }
@@ -140,30 +174,40 @@ def broadcast_question(quiz_id):
     #print(question_ids)
     # Obtém a quantidade de registros
     num_players = redis_client.scard(f"quiz:{quiz_id}:{quiz_session_id}:players")
-    print(num_players)
     
-    # Emite um sinal via WebSocket para notificar todos os clientes conectados que o quiz foi iniciado.
+    # Emitir a mensagem 'quiz_started' somente se houver clientes conectados
     socketio.emit('quiz_started', {'quiz_id': quiz_id}, room=quiz_id)
-    print(quiz_id)
+    
+
+    
     def send_questions():
         
         # Envia a pergunta atual para todos os clientes conectados
         for index, question_id in enumerate(question_ids):
+            #VERIFICA A ATIVACAO DO QUIZ
+            if not redis_client.get(f"quiz:{quiz_id}:current_quiz_session_id"):
+                print("Envio de perguntas interrompido")
+                return #para o envio
             
             # Define o valor do campo
             redis_client.hset(f"quiz:{quiz_id}:{quiz_session_id}:question:{question_id}:ranking", "qtd_abstencoes", num_players)
             redis_client.hset(f"quiz:{quiz_id}:{quiz_session_id}:question:{question_id}:ranking", "question_order", index + 1)
-            # Obtém a pergunta atual com base no índice.
-            question_data = redis_client.hgetall(f"quiz:{quiz_id}:{quiz_session_id}:question:{question_id}:info")
-            # Convert to a JSON object
-            question_data = {key.decode(): value.decode() for key, value in question_data.items()}
+            
+            try:
+                question_data = redis_client.hgetall(f"quiz:{quiz_id}:{quiz_session_id}:question:{question_id}:info")
+                question_data = {key.decode(): value.decode() for key, value in question_data.items()}
+            except redis.RedisError as e:
+                print(f"Error accessing Redis: {e}")
+                return
+            
             question_data_str = json.dumps(question_data)
             question = json.loads(question_data_str)
             #print(question)
             # Emit the question to all connected clients via WebSocket
             socketio.emit('new_question', {'question': question}, room=quiz_id)
+            #print(question)
             # Aguarda 20 segundos antes de enviar a próxima pergunta, dando tempo para os participantes responderem.
-            socketio.sleep(20)
+            socketio.sleep(11)
             ranking_middle(f"quiz:{quiz_id}:{quiz_session_id}:question:{question_id}")
             
         socketio.emit('quiz_finished', {'quiz_id': quiz_id, 'message': 'Quiz finished!'}, room=quiz_id)
@@ -191,9 +235,10 @@ def broadcast_question(quiz_id):
 def ranking_middle(current_question_key):
     redis_client = get_redis_connection()
     try:
-        time.sleep(25)  # Aguarda 25 segundos antes de processar os dados.
+        print("Passando pelo ranking middle")
+        #time.sleep(11)  # Aguarda 25 segundos antes de processar os dados.
         # Obtém a opção mais votada.
-        print(f"passando pelo ranking middle {current_question_key}")
+        #print(f"passando pelo ranking middle {current_question_key}")
         top_option = redis_client.zrevrange(f"{current_question_key}:votes", 0, 0, withscores=True)
         #print(top_option)
         redis_client.hset(f"{current_question_key}:ranking", "opcao_mais_votada", top_option[0][0])
@@ -205,7 +250,7 @@ def ranking_middle(current_question_key):
         num_users = len(response_times)
         average_time = round(total_time / num_users, 2) if num_users > 0 else 0
         redis_client.hset(f"{current_question_key}:ranking", "tempo_medio_resposta", average_time)
-        print(f"average_time : {average_time}")
+        #print(f"average_time : {average_time}")
 
     except Exception as e:
         print(f"Error in process_question_ranking: {e}")
@@ -317,6 +362,9 @@ def ranking_final(quiz_id):
     try:
         quiz_session_id = redis_client.get(f"quiz:{quiz_id}:current_quiz_session_id")
         quiz_session_id = quiz_session_id.decode('utf-8')
+        user_id = redis_client.hget(f"quiz:{quiz_id}:{quiz_session_id}:info", "quiz_owner")
+        quiz_owner = user_id.decode('utf-8')
+        
         
         # Obter dados globais de respostas corretas
         correct_responses_key = f"quiz:{quiz_id}:{quiz_session_id}:global:correct_responses"
@@ -333,19 +381,23 @@ def ranking_final(quiz_id):
             elif attribute == "correct_responses":
                 users_data[user_id]["correct_responses"] = int(value)
 
-        # Criar lista de usuários e rankear por pontuação e tempo de resposta
+        # Lista de Usuarios
         users_list = list(users_data.values())
+        
+        # Alunos rankeados por pontuação e tempo de resposta
         ranked_students = sorted(users_list, key=lambda x: (-x["correct_responses"], x["response_time"]))
-
         # Adicionar posições ao ranking
         ranked_students_with_positions = [
             {**student, "rank": index + 1} for index, student in enumerate(ranked_students)
         ]
 
-        # Filtrar alunos com maior número de respostas corretas
-        max_correct_responses = max(item["correct_responses"] for item in users_list)
-        top_students = [item for item in users_list if item["correct_responses"] == max_correct_responses]
-
+        # Alunos com maior número de respostas corretas
+        top_students = sorted(users_list, key=lambda x: -x["correct_responses"])
+        # Adicionar posições ao ranking
+        ranked_top_students = [
+            {**student, "rank": index + 1} for index, student in enumerate(top_students)
+        ] 
+        
         # Obter ranking dos alunos mais rápidos
         responses_time_key = f"quiz:{quiz_id}:{quiz_session_id}:global:responses_time"
         top_fastest = redis_client.zrange(responses_time_key, 0, -1, withscores=True)
@@ -408,7 +460,7 @@ def ranking_final(quiz_id):
         # Retornar os resultados
         results = {
             "students_ranking": ranked_students_with_positions,
-            "top_students_correct_answer": top_students,
+            "top_students_correct_answer": ranked_top_students,
             "fastest_students": ranked_fastest_users,
             "question_ranking": question_rank,
             "question_ranking_top_correct_question": question_ranking_top_correct_question,
@@ -419,6 +471,7 @@ def ranking_final(quiz_id):
         redis_client.expire(f"quiz:{quiz_id}:hist_rankings", EXPIRATION_TIME)
         # Deletar uma chave específica no Redis
         redis_client.delete(f"quiz:{quiz_id}:current_quiz_session_id")
+        redis_client.delete(f"quiz:{quiz_owner}")
 
         
         #print("RETORNANDO OS RESULTADOS...")

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify,session,request,render_template
-from app.services.redis_service import handle_player_join, initialize_quiz,broadcast_question, ranking_final, submit_player_answer
+from app.services.redis_service import handle_player_join, initialize_quiz,check_quiz_session,broadcast_question, ranking_final, submit_player_answer
 
 game_bp = Blueprint('game', __name__)
 
@@ -13,9 +13,12 @@ def start_quiz(quiz_id):
     
     if request.method == 'POST':
         try:
-            print('requisicao post')
-            broadcast_question(quiz_id)
-            return jsonify({"message": "Quiz started and questions are being sent"}), 200
+            if check_quiz_session(quiz_id):
+                
+                broadcast_question(quiz_id)
+                return jsonify({"message": "Quiz started and questions are being sent"}), 200
+            else:
+                return jsonify({"message": "Nenhum jogo em andamento"}), 404
         except Exception as e:
             return jsonify({"error": str(e)}), 500
         
@@ -49,6 +52,7 @@ def submit_answer(quiz_id):
 def ranking(quiz_id):
     """Return the ranking of players in the quiz."""
     try:
+        
         return jsonify({"ranking": ranking_final(quiz_id)}),200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
