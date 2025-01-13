@@ -1,0 +1,620 @@
+{
+	"info": {
+		"_postman_id": "79c42b8c-799e-48dd-9b88-b55987ad0b5f",
+		"name": "Real-Time-Quiz-System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8883050"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\" : \"vick\",\r\n    \"password\":\"123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/login",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\" : \"vick91\",\r\n    \"password\":\"123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/register",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/logout",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Home",
+			"item": [
+				{
+					"name": "Home",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Quiz",
+			"item": [
+				{
+					"name": "quiz",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "quiz",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quiz_title\": \"Geografia Mundial\",\r\n    \"questions\": [\r\n        {\r\n            \"question_text\": \"Qual é a capital da França?\",\r\n            \"answers\": [\r\n                {\r\n                    \"answer_text\": \"Paris\",\r\n                    \"is_correct\": true,\r\n                    \"nm_answer_option\": \"A\"\r\n                },\r\n                {\r\n                    \"answer_text\": \"Londres\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"B\"\r\n                },\r\n                {\r\n                    \"answer_text\": \"Roma\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"C\"\r\n                }\r\n            ]\r\n        },\r\n        {\r\n            \"question_text\": \"Qual é o maior oceano do mundo?\",\r\n            \"answers\": [\r\n                {\r\n                    \"answer_text\": \"Oceano Pacífico\",\r\n                    \"is_correct\": true,\r\n                    \"nm_answer_option\": \"A\"\r\n                },\r\n                {\r\n                    \"answer_text\": \"Oceano Atlântico\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"B\"\r\n                },\r\n                {\r\n                    \"answer_text\": \"Oceano Índico\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"C\"\r\n                }\r\n            ]\r\n        }\r\n    ]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "specific quiz",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz/{{quiz_id}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz",
+								"{{quiz_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "specific quiz",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quiz_title\": \"Geografia Atualizada\",\r\n    \"questions\": [\r\n        {\r\n            \"question_id\": \"120\",\r\n            \"question_text\": \"Qual é a capital da Alemanha?\",\r\n            \"answers\": [\r\n                {\r\n                    \"answer_id\": \"453\",\r\n                    \"answer_text\": \"Berlim\",\r\n                    \"is_correct\": true,\r\n                    \"nm_answer_option\": \"A\"\r\n                },\r\n                {\r\n                    \"answer_id\": \"454\",\r\n                    \"answer_text\": \"Londres\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"B\"\r\n                },\r\n                {\r\n                    \"answer_id\": \"455\",\r\n                    \"answer_text\": \"Paris\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"C\"\r\n                }\r\n            ]\r\n        },\r\n        {\r\n            \"question_id\": \"121\",\r\n            \"question_text\": \"Qual é o maior oceano do mundo?\",\r\n            \"answers\": [\r\n                {\r\n                    \"answer_id\": \"456\",\r\n                    \"answer_text\": \"Oceano Atlântico\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"A\"\r\n                },\r\n                {\r\n                    \"answer_id\": \"457\",\r\n                    \"answer_text\": \"Oceano Pacífico\",\r\n                    \"is_correct\": true,\r\n                    \"nm_answer_option\": \"B\"\r\n                },\r\n                {\r\n                    \"answer_id\": \"458\",\r\n                    \"answer_text\": \"Oceano Índico\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"C\"\r\n                }\r\n            ]\r\n        },\r\n        {\r\n            \"question_text\": \"Qual é a maior floresta do mundo?\",\r\n            \"answers\": [\r\n                {\r\n                    \"answer_text\": \"Floresta Amazônica\",\r\n                    \"is_correct\": true,\r\n                    \"nm_answer_option\": \"A\"\r\n                },\r\n                {\r\n                    \"answer_text\": \"Floresta do Congo\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"B\"\r\n                },\r\n                {\r\n                    \"answer_text\": \"Floresta de Taiga\",\r\n                    \"is_correct\": false,\r\n                    \"nm_answer_option\": \"C\"\r\n                }\r\n            ]\r\n        }\r\n    ]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz/{{quiz_id}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz",
+								"{{quiz_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "specific quiz",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz/{{quiz_id}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz",
+								"{{quiz_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "quiz active",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz/{{quiz_id}}/active",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz",
+								"{{quiz_id}}",
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stop quiz",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://127.0.0.1:5000/stop-quiz",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"stop-quiz"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Game",
+			"item": [
+				{
+					"name": "Join Quiz",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz/{{quiz_id}}/join",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz",
+								"{{quiz_id}}",
+								"join"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Join Quiz",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"user1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz/{{quiz_id}}/join",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz",
+								"{{quiz_id}}",
+								"join"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "game page",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz/{{quiz_id}}/{{username}}/game",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz",
+								"{{quiz_id}}",
+								"{{username}}",
+								"game"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start Quiz",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/start_quiz/{{quiz_id}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"start_quiz",
+								"{{quiz_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "submit answer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"user1\",\r\n    \"option\": {\r\n        \"nm_answer_option\": \"A\",\r\n        \"is_correct\": false\r\n    },\r\n    \"question_id\": \"90\",\r\n    \"time_taken\": 15.78\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/quiz/{{quiz_id}}/submit_answer",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"quiz",
+								"{{quiz_id}}",
+								"submit_answer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ranking",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/{{quiz_id}}/results",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"{{quiz_id}}",
+								"results"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

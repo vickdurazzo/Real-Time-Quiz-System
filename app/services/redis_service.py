@@ -10,7 +10,7 @@ from app.models import Answer
 
 # Tempo de expiração das chaves no Redis (30 dias em segundos)
 EXPIRATION_TIME = 30 * 24 * 60 * 60  # 2592000 segundos
-TEMPO_TRANSMISSAO_PERGUNTA = 11  # 30 segundos
+TEMPO_TRANSMISSAO_PERGUNTA = 20
 
 
 def get_redis_connection():
@@ -304,6 +304,8 @@ def broadcast_question(quiz_id):
 
             # Emite a pergunta para todos os clientes via WebSocket
             socketio.emit('new_question', {'question': question}, room=quiz_id)
+            #print(f"Pergunta {question_id} enviada")
+            #print(f"Resposta: {question['correct_answer']}")
 
             # Aguarda 11 segundos antes de enviar a próxima pergunta
             socketio.sleep(TEMPO_TRANSMISSAO_PERGUNTA)
@@ -549,8 +551,8 @@ def ranking_final(quiz_id):
         # Recupera o ID da sessão atual do quiz e o proprietário do quiz
         quiz_session_id = redis_client.get(f"quiz:{quiz_id}:current_quiz_session_id")
         quiz_session_id = quiz_session_id.decode('utf-8')
-        user_id = redis_client.hget(f"quiz:{quiz_id}:{quiz_session_id}:info", "quiz_owner")
-        quiz_owner = user_id.decode('utf-8')
+        quiz_owner = redis_client.hget(f"quiz:{quiz_id}:{quiz_session_id}:info", "quiz_owner")
+        quiz_owner = quiz_owner.decode('utf-8')
         
         # Recupera os dados globais de respostas corretas do Redis
         correct_responses_key = f"quiz:{quiz_id}:{quiz_session_id}:global:correct_responses"
@@ -657,4 +659,4 @@ def ranking_final(quiz_id):
         return results
 
     except Exception as e:
-        return {"error": str(e)}, 500
+        return {"error ranking": str(e)}, 500
