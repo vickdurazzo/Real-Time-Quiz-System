@@ -1,20 +1,36 @@
 # Quiz-related routes
-from flask import Blueprint, jsonify,session,request,render_template
+from flask import Blueprint, jsonify, session, request, render_template
+from app.models import Quiz, Question, Answer, db
+from app.services.redis_service import delete_quiz_from_redis, redis_stop_quiz, redis_active_quiz, check_quiz_session, check_user_quiz_session
 
-from app.models import Quiz,Question,Answer,db
-from app.services.redis_service import delete_quiz_from_redis, redis_stop_quiz,redis_active_quiz,check_quiz_session,check_user_quiz_session
-
-
-
-
-################# Funções Auxilares ################
+################# Funções Auxiliares ################
 
 # Função auxiliar para responder erros
 def handle_error(message, code=500):
+    """
+    Função para retornar uma resposta de erro formatada.
+    
+    Args:
+        message (str): A mensagem de erro a ser retornada.
+        code (int): O código de status HTTP (default: 500).
+
+    Returns:
+        response: Um objeto JSON com a mensagem de erro e o código de status.
+    """
     return jsonify({"message": message}), code
 
 # Função auxiliar para buscar um quiz pelo ID
 def get_quiz_by_id(quiz_id, user_specific=True):
+    """
+    Função para buscar um quiz pelo ID. Opcionalmente, filtra o quiz pelo usuário.
+    
+    Args:
+        quiz_id (str): O ID do quiz a ser buscado.
+        user_specific (bool): Se True, filtra o quiz pelo ID do usuário atual (default: True).
+    
+    Returns:
+        Quiz: O objeto Quiz correspondente, ou None se não encontrado.
+    """
     filters = {"quiz_id": quiz_id}
     if user_specific:
         filters["user_id"] = session['user_id']
@@ -22,6 +38,15 @@ def get_quiz_by_id(quiz_id, user_specific=True):
 
 # Função auxiliar para formatar dados de quiz
 def format_quiz_data(quiz):
+    """
+    Formata os dados do quiz para o formato JSON de resposta.
+    
+    Args:
+        quiz (Quiz): O objeto Quiz a ser formatado.
+
+    Returns:
+        dict: Um dicionário contendo as informações do quiz e suas questões.
+    """
     questions = Question.query.filter_by(quiz_id=quiz.quiz_id).all()
     return {
         'quiz_id': str(quiz.quiz_id),
@@ -49,26 +74,42 @@ quiz_bp = Blueprint('quiz', __name__)
 
 @quiz_bp.route('/quiz', methods=['GET', 'POST'])
 def quiz_route():
+    """
+    Rota para criar um novo quiz ou exibir o formulário de criação de quiz.
+    
+    Métodos:
+    - GET: Exibe o formulário para criar um novo quiz (HTML) ou uma mensagem JSON com a descrição da rota.
+    - POST: Cria um novo quiz no banco de dados com base nos dados fornecidos no corpo da requisição JSON.
+
+    Retorna:
+        - Para GET: Exibe o formulário HTML ou mensagem JSON.
+        - Para POST: Retorna uma mensagem JSON confirmando a criação do quiz ou um erro em caso de falha.
+    """
     if request.method == 'GET':
+        # Retorna uma mensagem de descrição da rota ou exibe o formulário de criação do quiz
         if request.headers.get('Accept') == 'application/json' or request.args.get('format') == 'json':
             return jsonify({"message": "Rota para form do quiz"}), 200
         return render_template("create_quiz.html")
 
     if request.method == 'POST':
         try:
+            # Extrai os dados do corpo da requisição
             data = request.get_json()
             quiz_title = data.get('quiz_title')
             questions = data.get('questions', [])
 
+            # Cria um novo quiz no banco de dados
             new_quiz = Quiz(user_id=session['user_id'], title=quiz_title, is_active=False)
             db.session.add(new_quiz)
             db.session.commit()
 
+            # Adiciona as questões e respostas ao quiz
             for question in questions:
                 new_question = Question(quiz_id=new_quiz.quiz_id, question_text=question['question_text'])
                 db.session.add(new_question)
-                db.session.flush()  # Garante ID do question
+                db.session.flush()  # Garante que o ID da questão seja gerado
 
+                # Adiciona as respostas de cada questão
                 for answer in question['answers']:
                     new_answer = Answer(
                         question_id=new_question.question_id,
@@ -78,13 +119,17 @@ def quiz_route():
                     )
                     db.session.add(new_answer)
 
+            # Commit das alterações no banco de dados
             db.session.commit()
            
+            # Retorna uma resposta de sucesso
             return jsonify({"message": "Quiz Created successfully!"}), 200
 
         except Exception as e:
+            # Em caso de erro, faz o rollback e retorna a mensagem de erro
             db.session.rollback()
             return handle_error(f"Error: {str(e)}")
+
 
 @quiz_bp.route('/quiz/<quiz_id>', methods=['GET', 'PUT', 'DELETE'])
 def specific_quiz_route(quiz_id):
