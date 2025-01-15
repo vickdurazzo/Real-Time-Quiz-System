@@ -9,10 +9,14 @@ WORKDIR /app
 # Copiar os arquivos do projeto para o container
 COPY . .
 
-# Instalar dependências
-RUN pip install --no-cache-dir -r requirements.txt
+# Instalar o módulo venv e criar o ambiente virtual
+RUN python -m venv /opt/venv
 
-# Configuração da variável de ambiente para o Flask
+# Ativar o ambiente virtual e instalar dependências
+RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Configuração da variável de ambiente para usar o Python do ambiente virtual
+ENV PATH="/opt/venv/bin:$PATH"
 ENV FLASK_APP=run.py
 ENV FLASK_ENV=development
 
