@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    container_name: quiz_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - db
+
+  redis:
+    image: redis/redis-stack
+    container_name: quiz_redis
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:15
+    container_name: quiz_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: questionredis
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

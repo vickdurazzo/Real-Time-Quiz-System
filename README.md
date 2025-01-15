@@ -16,6 +16,7 @@ O **Real-Time Quiz Game** é uma aplicação que permite a criação e gestão d
 ### Backend
 - **Flask:** Framework web em Python utilizado para criar as rotas e a lógica do servidor.
 - **Redis:** Banco de dados em memória usado para gerenciar estados em tempo real e desempenho de alto nível.
+- **Postgresql**  Banco de dados relacional para armazenar dados persistentes.
 
 ### Frontend
 - **HTML e Jinja2:** Para templates dinâmicos e renderização de páginas.
@@ -25,6 +26,7 @@ O **Real-Time Quiz Game** é uma aplicação que permite a criação e gestão d
 - **Bibliotecas:**
   - Flask-Bootstrap (para estilização básica)
   - Outros serviços integrados via Redis
+  
 
 ## Estrutura do Projeto
 
@@ -70,25 +72,45 @@ quiz_project/
    cd real-time-quiz-game
    ```
 
-2. **Criar e Ativar o Ambiente Virtual:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # No Windows: venv\Scripts\activate
-   ```
+2. **Configuração do Ambiente com Docker:**
+   Certifique-se de ter o **Docker** e o **Docker Compose** instalados em sua máquina.
 
-3. **Instalar Dependências:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+   1. Construa e inicie os containers:
+      ```bash
+      docker-compose up --build
+      ```
 
-4. **Configurar o Redis:**
-   - Certifique-se de que o Redis está instalado e em execução na sua máquina.
-   - Atualize as configurações de conexão no projeto, se necessário.
+   2. Acesse o aplicativo em: [http://localhost:5000](http://localhost:5000).
 
-5. **Executar o Projeto:**
-   ```bash
-   flask run
-   ```
+   3. Para parar os containers, use:
+      ```bash
+      docker-compose down
+      ```
+
+3. **(Opcional) Executar Localmente sem Docker:**
+   Caso prefira não usar Docker, siga as etapas abaixo:
+
+   1. **Criar e Ativar o Ambiente Virtual:**
+      ```bash
+      python3 -m venv venv
+      source venv/bin/activate  # No Windows: venv\Scripts\activate
+      ```
+
+   2. **Instalar Dependências:**
+      ```bash
+      pip install -r requirements.txt
+      ```
+
+   3. **Configurar o Redis e PostgreSQL:**
+      - Certifique-se de que o Redis e PostgreSQL estão instalados e em execução na sua máquina.
+      - Atualize as configurações de conexão no projeto, se necessário.
+
+   4. **Executar o Projeto:**
+      ```bash
+      flask run
+      ```
+
+
 
 ## Uso
 
