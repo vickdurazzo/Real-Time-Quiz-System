@@ -6,7 +6,7 @@ from socketio import Client
 import json
 
 # Configurações gerais
-QUIZ_ID = '46ba8128-e3a3-4b53-9a39-c5c64d9eacab'  # ID do quiz
+QUIZ_ID = 'd7069a37-f9a9-402e-aa32-d13bdce851a5'  # ID do quiz
 
 USERS = ['user1', 'user2', 'user3', 'user4', 'user5']  # Usuários simulados
 SERVER_URL = 'http://localhost:5000'  # URL do servidor

@@ -1,5 +1,3 @@
-# Dockerfile
-
 # Base image com Python
 FROM python:3.9-slim
 
@@ -17,11 +15,6 @@ RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Configuração da variável de ambiente para usar o Python do ambiente virtual
 ENV PATH="/opt/venv/bin:$PATH"
-ENV FLASK_APP=run.py
-ENV FLASK_ENV=development
 
-# Porta que a aplicação usará
-EXPOSE 5000
-
-# Comando para rodar a aplicação
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Definição do comando padrão como bash, permitindo que o usuário interaja com o container
+CMD ["/bin/bash"]

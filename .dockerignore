@@ -1,0 +1,6 @@
+.venv
+__pychache__
+Flask_App
+istance
+.env
+migrations
