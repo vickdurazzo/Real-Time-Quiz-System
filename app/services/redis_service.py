@@ -1,10 +1,12 @@
 # Redis-specific functions
-from flask import jsonify, session
+from flask import jsonify, session,current_app, url_for
 import redis
 import json
 import time
 from app import socketio
 from datetime import timedelta
+import requests
+
 
 from app.models import Answer
 
@@ -315,6 +317,18 @@ def broadcast_question(quiz_id):
         
         # Emite uma mensagem de finalização do quiz após o envio de todas as perguntas
         socketio.emit('quiz_finished', {'quiz_id': quiz_id, 'message': 'Quiz finished!'}, room=quiz_id)
+        
+        # **Nova requisição para obter o ranking**
+        try:
+            response = requests.get(f"http://127.0.0.1:5000/{quiz_id}/results")
+
+            if response.status_code == 200:
+                ranking_data = response.json()
+                socketio.emit('quiz_results', ranking_data, room=quiz_id)
+            else:
+                print(f"Erro ao obter ranking: {response.status_code}, {response.text}")
+        except requests.RequestException as e:
+            print(f"Erro ao requisitar ranking: {e}")
         
         ################ TEMPO DE EXPIRAÇÃO DAS CHAVES ###################
         # Configura o tempo de expiração para as chaves relacionadas ao quiz

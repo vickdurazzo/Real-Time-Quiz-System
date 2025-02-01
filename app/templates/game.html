@@ -42,11 +42,64 @@
                 // alert(`The Quiz ${data.quiz_id} has started!`);
             });
 
-             // Escutar o evento 'quiz_finished'
-             socket.on('quiz_finished', function(data) {
-                alert("The quiz is finished!");
-                $('#question-container').hide();
+            socket.on('quiz_finished', function(data) {
+            alert("The quiz is finished!");
+            $('#question-container').hide();
+            
+            // Escuta o evento WebSocket para receber os resultados
+            socket.on('quiz_results', function(response) {
+                displayResults(response);
             });
+        });
+
+        function displayResults(data) {
+            const resultContainer = $('<div class="container mt-4 p-4 border rounded bg-light">');
+            resultContainer.append('<h2 class="text-center">Resultados do Quiz</h2>');
+            
+            // Alternativas mais votadas
+            resultContainer.append('<h4>Alternativas Mais Votadas</h4>');
+            data.ranking.alternativas_mais_votadas.forEach(item => {
+                resultContainer.append(`<p><strong>P${item.question_order}:</strong> ${item.question_text} <br> <em>Mais votado:</em> ${item.opcao_mais_votada}</p>`);
+            });
+            
+            // Alunos com maior acerto
+            resultContainer.append('<h4>Alunos com Maior Acerto</h4>');
+            data.ranking.alunos_com_maior_acerto.forEach(item => {
+                resultContainer.append(`<p><strong>Usuário:</strong> ${item.user_id} - Acertos: ${item.correct_responses} - Tempo: ${item.response_time}ms</p>`);
+            });
+            
+            // Alunos com maior acerto e mais rápidos
+            resultContainer.append('<h4>Alunos com Maior Acerto e Mais Rápidos</h4>');
+            data.ranking.alunos_com_maior_acerto_e_mais_rapidos.forEach(item => {
+                resultContainer.append(`<p><strong>Usuário:</strong> ${item.user_id} - Acertos: ${item.correct_responses} - Tempo: ${item.response_time}ms</p>`);
+            });
+            
+            // Alunos mais rápidos
+            resultContainer.append('<h4>Alunos Mais Rápidos</h4>');
+            data.ranking.alunos_mais_rapidos.forEach(item => {
+                resultContainer.append(`<p><strong>Usuário:</strong> ${item.user_id} - Tempo: ${item.response_time}ms</p>`);
+            });
+            
+            // Questões mais acertadas
+            resultContainer.append('<h4>Questões Mais Acertadas</h4>');
+            data.ranking.questoes_mais_acertadas.forEach(item => {
+                resultContainer.append(`<p><strong>${item.question_text}</strong> - Acertos: ${item.qtd_acertos}</p>`);
+            });
+            
+            // Questões com mais abstenção
+            resultContainer.append('<h4>Questões com Mais Abstenção</h4>');
+            data.ranking.questoes_com_mais_abstencao.forEach(item => {
+                resultContainer.append(`<p><strong>${item.question_text}</strong> - Abstenções: ${item.qtd_abstencoes}</p>`);
+            });
+            
+            // Tempo médio de resposta por questão
+            resultContainer.append('<h4>Tempo Médio de Resposta por Questão</h4>');
+            data.ranking.tempo_medio_resposta_por_questao.forEach(item => {
+                resultContainer.append(`<p><strong>${item.question_text}</strong> - Tempo médio: ${item.tempo_medio_resposta}ms</p>`);
+            });
+            
+            $('body').append(resultContainer);
+        }
     
             socket.on('connect', function() {
                 console.log("Connected to WebSocket server");
