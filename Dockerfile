@@ -18,3 +18,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Definição do comando padrão como bash, permitindo que o usuário interaja com o container
 CMD ["/bin/bash"]
+#comentario

@@ -48,4 +48,5 @@ CREATE TABLE IF NOT EXISTS Answers (
 --INSERT INTO Users (nm_user, des_user_passwd)
 --VALUES ('test_user', 'test_password2');
 
+
 --SELECT * FROM Users; -- Verify UUIDs are generated
