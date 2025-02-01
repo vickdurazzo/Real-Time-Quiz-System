@@ -1,0 +1,51 @@
+Mapeamento das chaves Redis:
+
+    Descrição : Histórico do ranking do quiz
+    tipo : hash
+    Estrutura: quiz:{quiz_id}:hist_rankings
+
+    Descrição: Lista de respostas fornecidas para o quiz.
+    tipo : hash
+    Estrutura: quiz:{quiz_id}:{timestamp}:responses
+
+    Descrição: Lista de jogadores que estão participando do quiz.
+    tipo : set
+    Estrutura: quiz:{quiz_id}:{timestamp}:players
+
+    Descrição: Informações gerais sobre o quiz.
+    tipo : hash
+    Estrutura: quiz:{quiz_id}:{timestamp}:info
+
+    Descrição: Número total e tempo de respostas corretas no quiz no geral.
+    tipo : hash
+    Estrutura: quiz:{quiz_id}:{timestamp}:global:correct_responses
+
+    Descrição: tempo total de resposta para o quiz no geral.
+    tipo : sorted set
+    Estrutura: quiz:{quiz_id}:{timestamp}:global:responses_time
+
+    Descrição: Informações sobre a questão.
+    tipo : hash
+    Estrutura: quiz:{quiz_id}:{timestamp}:question:{question_id}:info
+
+    Descrição: Informações sobre a questão.
+    tipo : hash
+    Estrutura: quiz:{quiz_id}:{timestamp}:question:{question_id}:ranking
+
+    Descrição: Tempo de resposta para a questão.
+    tipo : sorted set
+    Estrutura: quiz:{quiz_id}:{timestamp}:question:{question_id}:response_time
+
+    Descrição: Lista de jogadores que votaram na questão.
+    tipo : sorted set
+    Estrutura: quiz:{quiz_id}:{timestamp}:question:{question_id}:voters
+
+    Descrição: Número de votos que a alternativa da questão recebeu.
+    tipo : sorted set
+    Estrutura: quiz:{quiz_id}:{timestamp}:question:{question_id}:votes
+
+
+
+
+    
+    

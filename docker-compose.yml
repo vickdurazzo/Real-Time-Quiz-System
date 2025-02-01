@@ -18,6 +18,8 @@ services:
     container_name: quiz_redis
     ports:
       - "6379:6379"
+      - "8001:8001"
+
 
   db:
     image: postgres:15

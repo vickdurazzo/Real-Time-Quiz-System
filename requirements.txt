@@ -4,4 +4,5 @@ Flask-SQLAlchemy
 Flask-Migrate
 Flask-SocketIO
 redis
-unittest
+psycopg2-binary
+requests
