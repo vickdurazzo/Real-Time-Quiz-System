@@ -12,8 +12,8 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">QuizApp</a>
-            <button class="btn btn-outline-light ms-auto" id="logoutButton">Logout</button>
+            <a class="navbar-brand" href="#">Real Time Quiz</a>
+            <button class="btn btn-outline-light ms-auto" id="logoutButton">Sair</button>
         </div>
     </nav>
 
@@ -23,7 +23,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Seus Quizzes</h2>
             <div>
-                <button class="btn btn-primary" id="createQuizButton">Create New Quiz</button>
+                <button class="btn btn-primary" id="createQuizButton">Criar Quiz</button>
             </div>
             
         </div>
@@ -33,8 +33,8 @@
                 <thead class="table-dark">
                     <tr>
                         <th>#</th>
-                        <th>Quiz Name</th>
-                        <th>Actions</th>
+                        <th>Quiz</th>
+                        <th>Ações</th>
                         <th>Link para entrada</th>
                     </tr>
                 </thead>
@@ -55,7 +55,7 @@
                         {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="4">No quizzes created yet.</td>
+                        <td colspan="4">Nenhum quiz criado ainda</td>
                     </tr>
                     {% endif %}
                 </tbody>

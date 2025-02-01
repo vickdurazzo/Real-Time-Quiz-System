@@ -31,7 +31,7 @@ O **Real-Time Quiz Game** é uma aplicação que permite a criação e gestão d
 ## Estrutura do Projeto
 
 ```plaintext
-quiz_project/
+REAL-TIME-QUIZ-SYSTEM/
 ├── app/
 │   ├── __init__.py         # Inicializa a aplicação Flask e as extensões
 │   ├── models.py           # Definição de modelos de dados
@@ -66,34 +66,67 @@ quiz_project/
 
 ## Configuração do Ambiente
 
-1. **Clonar o Repositório:**
-   ```bash
-   git clone https://github.com/seu_usuario/real-time-quiz-game.git
-   cd real-time-quiz-game
-   ```
+## Pré-requisitos
 
-2. **Configuração do Ambiente com Docker:**
-   Certifique-se de ter o **Docker** e o **Docker Compose** instalados em sua máquina.
+Antes de começar, certifique-se de ter as seguintes ferramentas instaladas no seu computador:
 
-   1. Construa e inicie os containers:
-      ```bash
-      docker-compose up --build
-      ```
-   2. Acesse o container do Flask
-      ```
-      docker exec -it quiz_app /bin/bash
-      ```
-   3. Inicie a aplica
+- [Docker](https://www.docker.com/products/docker-desktop) (inclui o Docker Compose)
+- [Docker Compose](https://docs.docker.com/compose/)
 
-   2. Acesse o aplicativo em: [http://localhost:5000](http://localhost:5000).
+## Instruções de execução no modo de desenvolvimento
 
-   3. Para parar os containers, use:
-      ```bash
-      docker-compose down
-      ```
+Siga os passos abaixo para rodar a aplicação localmente em modo de desenvolvimento:
 
+### 1. Clonar o repositório
 
+Clone o repositório da aplicação para o seu computador:
 
+```bash
+git clone https://github.com/seu-usuario/Real-Time-Quiz-System.git
+cd Real-Time-Quiz-System
+```
+### 2. Criar as imagens Docker
+
+Construir as imagens necessárias usando o Docker Compose:
+
+```
+docker-compose build
+```
+### 3. Subir os containers
+
+Subir os containers com o Docker Compose:
+```
+docker-compose up -d
+```
+### 4. Acessar o container da aplicação
+
+Para acessar o container da aplicação e interagir com ele, use o comando docker exec:
+```
+docker exec -it quiz_app /bin/bash
+```
+
+### 5. Rodar a aplicação Flask
+
+Dentro do container, execute o comando abaixo para iniciar a aplicação Flask:
+```
+python run.py
+```
+
+### 6. Acessar a aplicação no navegador
+
+Agora que a aplicação está rodando, você pode acessá-la através do seu navegador:
+
+- URL: http://localhost:5000
+
+## Observações
+
+- A aplicação estará rodando no modo de desenvolvimento, então qualquer alteração nos arquivos do código fonte será automaticamente refletida na aplicação.
+- O Flask servirá a aplicação na URL [http://localhost:5000](http://localhost:5000).
+- Para parar a aplicação, use o comando:
+
+```bash
+docker-compose down
+```
 
 ## Uso
 
