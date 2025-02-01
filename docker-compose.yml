@@ -5,7 +5,7 @@ services:
     container_name: quiz_app
     ports:
       - "5000:5000"
-      
+    
     volumes:
       - .:/REAL-TIME-QUIZ-SYSTEM
     depends_on:
@@ -13,6 +13,7 @@ services:
       - db
     stdin_open: true
     tty: true
+
 
   redis:
     image: redis/redis-stack

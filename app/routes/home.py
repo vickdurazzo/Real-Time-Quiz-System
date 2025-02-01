@@ -24,6 +24,7 @@ def home():
     - Em caso de erro, uma resposta JSON com a mensagem de erro será retornada com status 500.
     """
     try:
+        print("acessando rota")
         # Verifica se o usuário está logado
         if 'user_id' not in session:
             return redirect(url_for('auth.login'))  # Redireciona para a página de login
