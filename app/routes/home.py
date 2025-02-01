@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, session, render_template
+from flask import Blueprint, jsonify, request, session, render_template,redirect,url_for
 from app.models import User, Quiz, db
 
 # Criação de um Blueprint chamado 'home', responsável por agrupar rotas relacionadas à página inicial do aplicativo
@@ -24,6 +24,10 @@ def home():
     - Em caso de erro, uma resposta JSON com a mensagem de erro será retornada com status 500.
     """
     try:
+        # Verifica se o usuário está logado
+        if 'user_id' not in session:
+            return redirect(url_for('auth.login'))  # Redireciona para a página de login
+
         # Recupera os quizzes do usuário atual
         quizzes = Quiz.query.filter_by(user_id=session['user_id']).all()
         
