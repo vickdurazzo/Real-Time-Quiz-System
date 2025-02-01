@@ -12,7 +12,7 @@ socketio = SocketIO()
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'sua_chave_secreta'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:1234@localhost:5432/questionredis'
+    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://admin:1234@db:5432/questionredis"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Desativa warnings desnecessários
 
 

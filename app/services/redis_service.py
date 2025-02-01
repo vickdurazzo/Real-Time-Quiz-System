@@ -20,7 +20,7 @@ def get_redis_connection():
     Retorna:
         redis.StrictRedis: Instância do cliente Redis para interações com o servidor Redis.
     """
-    return redis.StrictRedis(host='localhost', port=6379, db=0)
+    return redis.StrictRedis(host="quiz_redis", port=6379, db=0)
 
 def load_quiz_to_redis(quiz_id, quiz_data):
     """

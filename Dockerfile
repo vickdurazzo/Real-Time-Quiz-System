@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Diretório de trabalho dentro do container
-WORKDIR /app
+WORKDIR /REAL-TIME-QUIZ-SYSTEM
 
 # Copiar os arquivos do projeto para o container
 COPY . .
@@ -18,4 +18,3 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Definição do comando padrão como bash, permitindo que o usuário interaja com o container
 CMD ["/bin/bash"]
-#comentario
