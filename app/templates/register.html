@@ -3,31 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <title>Register</title>
+    <title>Quiz Time Cadastro</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            background-color: #1E90FF;
+        }
+
+        .left-section {
+            background-color: #1E90FF;
+            width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .left-section img {
+            width: 50%;
+            height: auto;
+           
+        }
+
+        .right-section {
+            width: 50%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-top-left-radius: 50px;
+            border-bottom-left-radius: 50px;
+            
+            
+        }
+
+
+        .right-section h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .right-section p {
+            margin-bottom: 30px;
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .input-group {
+            width: 100%;
+            /*max-width: 300px;*/
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .btn {
+            width: 50%;
+            padding: 10px;
+            background-color: #1E90FF;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #1565C0;
+        }
+
+        .signup-link {
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        .signup-link a {
+            color: #1E90FF;
+            text-decoration: none;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-section {
+                width: 100%;
+                height: 40vh;
+            }
+
+            .right-section {
+                width: 100%;
+                height: 60vh;
+            }
+
+            .left-section img {
+                width: 60%;
+                
+            }
+
+            .right-section h1 {
+                font-size: 1.5rem;
+            }
+
+            .right-section p {
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                font-size: 0.9rem;
+            }
+
+            .input-group input {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .left-section img {
+                width: 70%;
+                
+            }
+
+            .right-section h1 {
+                font-size: 1.2rem;
+            }
+
+            .right-section p {
+                font-size: 0.8rem;
+            }
+
+            .btn {
+                font-size: 0.8rem;
+            }
+
+            .input-group input {
+                padding: 6px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h2>Registre-se</h2>
-        <form id="register-form">
-            <div class="form-group">
-                <label for="name">Apelido</label>
-                <input type="text" class="form-control" id="username" name="username" required>
+    <div class="container">
+        <div class="left-section">
+            <img src="../static/imgs/logo.png" alt="Quiz Time Logo">
+        </div>
+        <div class="right-section">
+            
+            <h1>Cadastre-se</h1>
+            
+
+            <div style="width: 50%;display: flex;flex-direction: column;align-items: center;">
+                <form id="register-form" action="#" style="width: 100%;display: flex;flex-direction: column;align-items: center;">
+                    <div class="input-group">
+                        <label for="nickname">Apelido</label>
+                        <input type="text" id="nickname" name="nickname" placeholder="Digite seu apelido">
+                    </div>
+    
+                    <div class="input-group">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" placeholder="Digite sua senha">
+                    </div>
+    
+                    <button type="submit" class="btn">Cadastro</button>
+                </form>
+    
+                <div class="signup-link">
+                    <span>Já esta cadastrado? </span><a href="{{ url_for('auth.login') }}">Acessar</a>
+                </div>
+
+            
+
             </div>
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Register</button>
-        </form>
-        <p class="mt-3">Já esta cadastrado?<a href="{{ url_for('auth.login') }}">Acessar</a>.</p>
+            
+            
+        </div>
     </div>
     <script>
         document.getElementById("register-form").addEventListener("submit", async function(event) {
             event.preventDefault(); // Prevent the default form submission
     
             const formData = {
-                username: document.getElementById("username").value,
+                username: document.getElementById("nickname").value,
                 password: document.getElementById("password").value
             };
     
@@ -54,7 +242,7 @@
                 }
             } catch (err) {
                 console.error("Error:", err);
-                alert("An error occurred. Please try again.");
+                alert("Ocorreu um erro. Tente de novo");
             }
         });
     </script>
