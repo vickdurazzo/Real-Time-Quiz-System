@@ -27,7 +27,6 @@ O **Real-Time Quiz Game** é uma aplicação que permite a criação e gestão d
   - Flask-Bootstrap (para estilização básica)
   - Outros serviços integrados via Redis
   
-
 ## Estrutura do Projeto
 
 ```plaintext
@@ -47,13 +46,16 @@ REAL-TIME-QUIZ-SYSTEM/
 │   │   └── websocket.py    # Serviço de WebSockets
 │   ├── static/             # Arquivos estáticos (CSS, JS, Imagens)
 │   │   ├── style.css       # Estilo CSS básico
-│   │   └── api_collection/ # Arquivos estáticos para a API
+│   │   └── api_collection/ # Arquivo da Api
+│   │   └── imgs/           # Arquivo de imagens projeto
 │   │       
 │   └── templates/          # Templates HTML
 ├── DB/                     # Info dos bancos de dados do Projeto
-│   └── models/
-│       ├── PostgreSQL model Sistema Gameficado de Quiz_.hck.json
-│       └── tables_scripts.sql
+│   └── init_ddl/
+│       └── init.sql        # Script inicializador banco de dados         
+│   └── modelo/
+│       ├── PostgreSQL model Sistema Gameficado de Quiz_.hck.json # Modelo do banco de dados Relacional
+│       └── mapeamento_chaves_redis.yaml                          # Documentação das chaves do processo
 │
 ├── requirements.txt        # Dependências do projeto
 ├── run.py                  # Arquivo principal para executar a aplicação
